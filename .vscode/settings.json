@@ -1,0 +1,9 @@
+{
+  "files.associations": {
+    "*.lsp": "html",
+    "real_function.h": "c",
+    "netocd_config_json.h": "c",
+    "cstring": "c",
+    "signal.h": "c"
+  }
+}

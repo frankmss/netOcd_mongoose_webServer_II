@@ -1,0 +1,22 @@
+Info : only one transport option; autoselect 'jtag'
+Info : axiBlaster_register_addr: reg addr is set
+
+Warn : Transport "jtag" was already selected
+adapter speed: 100 kHz
+
+Info : Listening on port 6661 for tcl connections
+Info : Listening on port 4441 for telnet connections
+Info : axiblaster: reg addr init function
+
+Info : clock speed 1500 kHz
+Info : JTAG tap: stm32f4x.cpu tap/device found: 0x4ba00477 (mfg: 0x23b (ARM Ltd), part: 0xba00, ver: 0x4)
+Info : JTAG tap: stm32f4x.bs tap/device found: 0x06413041 (mfg: 0x020 (STMicroelectronics), part: 0x6413, ver: 0x0)
+Info : DAP transaction stalled (WAIT) - slowing down
+Info : DAP transaction stalled (WAIT) - slowing down
+Info : DAP transaction stalled (WAIT) - slowing down
+Info : DAP transaction stalled (WAIT) - slowing down
+Info : DAP transaction stalled (WAIT) - slowing down
+Info : stm32f4x.cpu: hardware has 0 breakpoints, 0 watchpoints
+Info : starting gdb server for stm32f4x.cpu on 3331
+Info : Listening on port 3331 for gdb connections
+shutdown command invoked
