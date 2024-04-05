@@ -129,7 +129,7 @@ static void timer_fn(void *arg) {
   (void)arg;
 }
 
-a
+
 // /home/cahill/gitClone/openocd-code-withaxi
 // ./src/openocd -f tcl/cahill_cfg/axiBlaster_tcl_0.tcl -f tcl/target/stm32f4x.cfg -s tcl
 
