@@ -205,6 +205,23 @@ int get_OcdCfgList(char *resultBuf) {
   // printf("cfgList:%s\n",resultBuf);
 }
 
+int del_AocdCfgFile( char *fileName){
+  char cfgPath[100];
+  memset(cfgPath, 0, 100);
+  // sprintf(cfgPath, "ls /usr/local/openocd-code-withaxi/tcl/target");
+  sprintf(cfgPath, "rm %s/tcl/target/%s.cfg -rf", OPENOCD_PATH, fileName);
+  char exec_result[100];
+  exec_cmd(cfgPath, exec_result);
+}
+
+int cat_cfgFileContext(char* fileName, char* rsp){
+  char cfgPath[100];
+  memset(cfgPath, 0, 100);
+  sprintf(cfgPath, "cat %s/tcl/target/%s.cfg", OPENOCD_PATH, fileName);
+  exec_cmd(cfgPath, rsp);
+  //printf("------->%s", rsp);
+}
+
 // openocd shoud run in fork thread, the thread start stop and check ocd sta
 // so all cmd shoud exed int this fork
 int start_ocd(char *ocdName, char *cfgFile) {

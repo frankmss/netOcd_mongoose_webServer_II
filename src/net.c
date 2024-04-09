@@ -89,14 +89,14 @@ static void send_notification(struct mg_mgr *mgr, const char *fmt, ...) {
   }
 }
 
-gs_OcdCfgsList(struct mg_mgr *mgr){
-#define resultBufsize 4096*2
+gs_OcdCfgsList(struct mg_mgr *mgr) {
+#define resultBufsize 4096 * 2
   char resultBuf[resultBufsize];
   memset(resultBuf, 0, resultBufsize);
   get_OcdCfgList(resultBuf);
-  create_cfgJson(resultBuf,resultBufsize);
+  create_cfgJson(resultBuf, resultBufsize);
   send_notification(mgr, "%s", resultBuf);
-  printf("ws:send:%s\n",resultBuf);
+  printf("ws:send:%s\n", resultBuf);
 }
 
 // Send simulated metrics data to the dashboard, for chart rendering
@@ -113,7 +113,7 @@ static void timer_getInterface_sta(void *param) {
   int i;
   char *pstr;
   char msgBuf[2048];
-  char ocdBuf[4096+2048];
+  char ocdBuf[4096 + 2048];
   int cpusage = 0;   //
   int memusage = 0;  //
 
@@ -121,13 +121,13 @@ static void timer_getInterface_sta(void *param) {
   memset((char *)(&main_sta_data), 0, sizeof(struct swap_status));
   get_status_data_from_bk(&main_sta_data, &s2m_data);
 
-  //generate interface status json
-  create_ifcJson(&main_sta_data,msgBuf);
+  // generate interface status json
+  create_ifcJson(&main_sta_data, msgBuf);
   send_notification(param, "%s", msgBuf);
-  
-  //generate ocd status json
-  
-  memset(ocdBuf,0,4096+2048);
+
+  // generate ocd status json
+
+  memset(ocdBuf, 0, 4096 + 2048);
   create_ocdJson(&main_sta_data, ocdBuf);
   send_notification(param, "%s", ocdBuf);
   printf("%s\n", ocdBuf);
@@ -135,16 +135,19 @@ static void timer_getInterface_sta(void *param) {
   cpusage = main_sta_data.cpusage;
   memusage = main_sta_data.memusage;
   printf("real == cpusage:%d,mem:%d\n", cpusage, memusage);
-  cpusage = cpusage +(int)((double)rand() * 3 / RAND_MAX);
-  memusage=memusage +(int)((double)rand() * 3 / RAND_MAX);
-  //printf("vir == cpusage:%d,mem:%d\n", cpusage, memusage);
-  if(cpusage>=105){cpusage=105;}
-  if(memusage>=105){memusage=105;}
+  cpusage = cpusage + (int)((double)rand() * 3 / RAND_MAX);
+  memusage = memusage + (int)((double)rand() * 3 / RAND_MAX);
+  // printf("vir == cpusage:%d,mem:%d\n", cpusage, memusage);
+  if (cpusage >= 105) {
+    cpusage = 105;
+  }
+  if (memusage >= 105) {
+    memusage = 105;
+  }
   // send cpu mem json
   send_notification(param, "{%Q:%Q,%Q:[%lu, %d],%Q:[%lu, %d]}", "name",
                     "cpumem", "cpu", (unsigned long)time(NULL), cpusage, "mem",
                     (unsigned long)time(NULL), memusage);
-
 }
 
 // MQTT event handler function
@@ -256,40 +259,62 @@ void opr_interface(struct mg_http_message *hm) {
   }
 }
 
-void opr_openocd(struct mg_http_message *hm){
+void opr_openocd(struct mg_http_message *hm) {
   char ocdName[64];
   char cfg[64];
   char action[16];
-  int ocdNamei=0,cfgi=0,actioni;
-  ocdNamei = mg_http_get_var(&hm->body, "ocd", ocdName,
-                                  sizeof(ocdName));
+  int ocdNamei = 0, cfgi = 0, actioni;
+  ocdNamei = mg_http_get_var(&hm->body, "ocd", ocdName, sizeof(ocdName));
   cfgi = mg_http_get_var(&hm->body, "cfg", cfg, sizeof(cfg));
   actioni = mg_http_get_var(&hm->body, "action", action, sizeof(action));
-  if((ocdNamei>0) && (cfgi>0) && (actioni>0)){
-    printf("opr_openocd: %s->%s->%s\n",ocdName, cfg, action);
-    if(strstr(action, "start") != NULL){
+  if ((ocdNamei > 0) && (cfgi > 0) && (actioni > 0)) {
+    printf("opr_openocd: %s->%s->%s\n", ocdName, cfg, action);
+    if (strstr(action, "start") != NULL) {
       // printf("%s should start\n",ocdName);
-      //int start_ocd(char *ocdName, char *cfgFile)
+      // int start_ocd(char *ocdName, char *cfgFile)
       start_ocd(ocdName, cfg);
-    }else if(strstr(action, "stop") != NULL){
+    } else if (strstr(action, "stop") != NULL) {
       stop_ocd(ocdName);
-      
     }
-
   }
 }
 
-void opr_trstPinLow(struct mg_http_message *hm){
+
+
+void manageOcdFile(struct mg_http_message *hm){
+  char cfg[64];
+  char action[16];
+  int actioni = 0, cfgi = 0;
+  cfgi = mg_http_get_var(&hm->body, "cfg", cfg, sizeof(cfg));
+  actioni = mg_http_get_var(&hm->body, "action", action, sizeof(action));
+  if((cfgi>0) && (actioni>0)){
+    printf("manageOcdFile: action(%s)->file(%s)", action, cfg);
+    if(strstr(action, "delete") != NULL){
+     del_AocdCfgFile(cfg);
+    }
+  }
+}
+
+void catOcdFileContext(struct mg_http_message *hm, char *rsp){
+  char cfg[64];
+  int cfgi = 0;
+  cfgi = mg_http_get_var(&hm->body, "cfg", cfg, sizeof(cfg));
+  if(cfgi>0){
+    cat_cfgFileContext(cfg, rsp);
+  }
+}
+
+void opr_trstPinLow(struct mg_http_message *hm) {
   char resetPin[20];
   int32_t pinI = -1;
   int yy = mg_http_get_var(&hm->body, "resetPin", resetPin, sizeof(resetPin));
-  if((yy>0)){
+  if ((yy > 0)) {
     printf("opr_trstPinLow->trstPin(%d)\n", resetPin);
-    if(strstr(resetPin, "trst0") != NULL){
+    if (strstr(resetPin, "trst0") != NULL) {
       pinI = 0;
-    }else if(strstr(resetPin, "trst1") != NULL){  //trst1
+    } else if (strstr(resetPin, "trst1") != NULL) {  // trst1
       pinI = 1;
-    }else{
+    } else {
       printf("opr_trstPinLow->trstPin pin name err xxx\n");
       return;
     }
@@ -356,8 +381,10 @@ void device_dashboard_fn(struct mg_connection *c, int ev, void *ev_data,
         } else if (strcmp(buf, "click_Comconfig") == 0) {
           send_notification(c->mgr, "{%Q:%Q}", "page", "Comconfig");
         } else if (strcmp(buf, "click_OcdConfig") == 0) {
-          
           send_notification(c->mgr, "{%Q:%Q}", "page", "OcdConfig");
+          gs_OcdCfgsList(c->mgr);
+        } else if (strcmp(buf, "click_editOcdOption") == 0) {
+          send_notification(c->mgr, "{%Q:%Q}", "page", "editOcdCfg");
           gs_OcdCfgsList(c->mgr);
         } else if (strcmp(buf, "click_settingConfig") == 0) {
           send_notification(c->mgr, "{%Q:%Q}", "page", "settingConfig");
@@ -374,16 +401,63 @@ void device_dashboard_fn(struct mg_connection *c, int ev, void *ev_data,
       // printf("%s(%d)\n", bufx, yy);
       opr_interface(hm);
       mg_http_reply(c, 200, "", "ok\n");
-    } else if(mg_http_match_uri(hm, "/api/ocd")){
-      //api/ocd config openocd
+    } else if (mg_http_match_uri(hm, "/api/ocd")) {
+      // api/ocd config openocd
       opr_openocd(hm);
       mg_http_reply(c, 200, "", "ok\n");
-    }else if(mg_http_match_uri(hm, "/api/trstExec")){
+    } else if (mg_http_match_uri(hm, "/api/manegeOcdCfgFile")){
+      manageOcdFile(hm);
+      mg_http_reply(c, 200, "", "ok\n");
+      printf("after manageOcdFile should post fgsList\n");
+      gs_OcdCfgsList(c->mgr);  //after delete a cfg file, should ws post cfg list
+    } else if (mg_http_match_uri(hm, "/api/getOcdCfgFileContext")){
+      #define CFGMAXSIZE (100*1024) //100K bytes
+      printf("get view cfg context request!\n");
+      const char *headers = "content-type: text/json\r\n";
+      char *p_catRsp = malloc(CFGMAXSIZE);
+      p_catRsp = (char*)calloc(CFGMAXSIZE, 1); //申请一块100k的内存，并且已经初始化为0
+      catOcdFileContext(hm, p_catRsp);
+      mg_http_reply(c, 200, headers, "{%Q:%Q}", "complexField", p_catRsp);
+      free(p_catRsp);
+      
+    } else if (mg_http_match_uri(hm, "/api/trstExec")) {
       opr_trstPinLow(hm);
       mg_http_reply(c, 200, "", "ok\n");
+    } else if (mg_http_match_uri(
+                   hm, "/api/svfFileupload")) {  // "/api/svgfileupload"
+      char path[80], name[64];
+
+      mg_http_get_var(&hm->query, "name", name, sizeof(name));
+
+      printf("/api/svgfileupload--name-->%s\n", name);
+      if ((name[0] == '\0') || (strstr(name, "svf")==NULL) ) {
+        mg_http_reply(c, 400, "", "%s", "file format is wrong");
+        // fprintf(name, "xyz123.bin");
+      } else {
+        mg_snprintf(path, sizeof(path),
+                    "/usr/local/openocd-withaxi/012/usrSvfDir/%s", name);
+        mg_http_upload(c, hm, &mg_fs_posix, mg_remove_double_dots(path),
+                       512000);
+      }
+    } else if (mg_http_match_uri(
+                   hm, "/api/cfgFileupload")) {  // "/api/svgfileupload"
+      char path[80], name[64];
+
+      mg_http_get_var(&hm->query, "name", name, sizeof(name));
+
+      printf("/api/cfgfileupload--name-->%s\n", name);
+      if (name[0] == '\0') {
+        mg_http_reply(c, 400, "", "%s", "name required");
+        // fprintf(name, "xyz123.bin");
+      } else {
+        mg_snprintf(path, sizeof(path),
+                    "/usr/local/openocd-withaxi/012/tcl/target/%s", name);
+        mg_http_upload(c, hm, &mg_fs_posix, mg_remove_double_dots(path),
+                       512000);
+      }
     } else {
       struct mg_http_serve_opts opts = {0};
-      //opts.root_dir = s_root_dir;
+      // opts.root_dir = s_root_dir;
       opts.root_dir = s_root_dir_user_asign;
       mg_http_serve_dir(c, ev_data, &opts);
     }

@@ -31,6 +31,8 @@ int start_can(char *wName, char *port, char *bps);
 int stop_ser2net(char *wName, struct swap_status *pswap);
 int stop_can(char *wName);
 int get_OcdCfgList(char *resultBuf);
+int del_AocdCfgFile( char *fileName);
+int cat_cfgFileContext(char* fileName, char* rsp);
 int start_ocd(char *ocdName, char *cfgFile);
 int stop_ocd(char *ocdName);
 

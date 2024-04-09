@@ -384,7 +384,7 @@ const Chart = function (props) {
 var Nav_cnt = 0;
 // const App_1 = function(props) {
 const Navigation = function (props) {
-  const [url, setUrl] = useState();
+
 
   const update = (name, val) => {
     fetch('/api/Navigation', {
@@ -398,6 +398,7 @@ const Navigation = function (props) {
   const [Comconfig, set_Comconfig] = useState("disactive");
   const [OcdConfig, set_OcdConfig] = useState("disactive");
   const [settingConfig, set_settingConfig] = useState("disactive");
+  const [editOcdCfg, set_editOcdCfg] = useState("disactive");
   const [showWs, set_showWs] = useState("...");
 
   const click_sysSta = () => {
@@ -410,6 +411,10 @@ const Navigation = function (props) {
   const click_OcdConfig = () => {
     update("page", "click_OcdConfig");
   };
+  const click_editOcdOption = () => {
+    console.log("click_editOcdOption...");
+    update("page", "click_editOcdOption");
+  };
   const click_settingConfig = () => {
     update("page", "click_settingConfig");
   }
@@ -419,17 +424,18 @@ const Navigation = function (props) {
   function updatePulse() {
     // console.log("updatePulse ---->");
     var e = document.getElementById(imgPulseId);
-    e.src=pulseFile;
+    e.src = pulseFile;
     // console.log("updatePulse gitttttt",e);
   };
   useEffect(() => {
     const id = PubSub.subscribe(function (msg) {
-      // console.log("Navigation:",msg);
+      //console.log("Navigation:",msg.page);
       if (msg.page) {
         if (msg.page == 'sysSta') {
           set_sysSta("active");
           set_Comconfig("disactive");
           set_OcdConfig("disactive");
+          set_editOcdCfg("disactive");
           set_settingConfig("disactive");
 
         }
@@ -437,24 +443,34 @@ const Navigation = function (props) {
           set_sysSta("disactive");
           set_Comconfig("active");
           set_OcdConfig("disactive");
+          set_editOcdCfg("disactive");
           set_settingConfig("disactive");
         }
         else if (msg.page == 'OcdConfig') {
           set_sysSta("disactive");
           set_Comconfig("disactive");
           set_OcdConfig("active");
+          set_editOcdCfg("disactive");
+          set_settingConfig("disactive");
+        }
+        else if (msg.page == 'editOcdCfg') {
+          set_sysSta("disactive");
+          set_Comconfig("disactive");
+          set_OcdConfig("disactive");
+          set_editOcdCfg("active");
           set_settingConfig("disactive");
         }
         else if (msg.page == 'settingConfig') {
           set_sysSta("disactive");
           set_Comconfig("disactive");
           set_OcdConfig("disactive");
+          set_editOcdCfg("disactive");
           set_settingConfig("active");
         }
         console.log("before run updatePulse function");
         updatePulse();
       }
-      
+
       if (msg.interface) { //for heart beats, loop show text
         set_showWs(".");
         updatePulse();
@@ -508,17 +524,21 @@ const Navigation = function (props) {
                   <span class="icon"><i class="fas fa-volleyball-ball"></i></span>
                   <span class="title">Ocd</span>
               </a></li>
+          <li><a href="#" class=${editOcdCfg} onclick=${click_editOcdOption}>
+              <span class="icon"><i class="fas fa-volleyball-ball"></i></span>
+              <span class="title">Edit_Ocd_Cfg</span>
+          </a></li>
           <li><a href="#" class=${settingConfig} onclick=${click_settingConfig}>
                   <span class="icon"><i class="fas fa-blog"></i></span>
-                  <span class="title">setting</span>
-              </a></li>
+                  <span class="title">Tips</span>
+          </a></li>
       </ul>
     </div>
  
   `;
 };
 
-var sysStaViewCnt =0;
+var sysStaViewCnt = 0;
 const sysStaView = function (props) {
   var titleColor = "#999999"
   var cancleColor = "#bfbfbf"
@@ -546,7 +566,7 @@ const sysStaView = function (props) {
   const [can0T, set_can0T] = useState("");
   const [can1T, set_can1T] = useState("");
 
-  
+
   useEffect(() => {
     const id = PubSub.subscribe(function (msg) {
       if (msg.interface) {
@@ -632,11 +652,11 @@ const sysStaView = function (props) {
           set_ocd1T("");
         }
       }
-      
+
     });
     return PubSub.unsubscribe(id);
   }, []);
-  
+
   // console.log("systme status::::", ocd0T, ocd1T,sysStaViewCnt);
   if (props.page != "1") return ``;
   return html`
@@ -980,37 +1000,41 @@ const oneOcdConfig = props => {
     }
   }, [])
   return html`
-  <div class="col col-5-5">
+
+  <div class="col col-5-5"> 
   <div class="item" style="background: ${bgroundColor}">
       <h3 style="background: #0DA0EE; color: #fff; padding: 0.4em;">${props.inface} ${useTip}</h3>
-      <div style="margin: 0.5em 0; display: flex;">
-      <select id=${props.inface} value=${props.cfg}>
+      
+      <div style="margin: 0.5em 0; display: flex;" > 
+  
+      <select id=${props.inface} value=${props.cfg} style="margin-left: 0.0em;">
       ${props.cfgList.map(cfg => h(oneOcdCfg, { cfg }))}
       </select>
-
       <button id=${enableBtnId} disabled=${enabledSta} class="btn" 
       style="margin-left: 1em; background: #9DEE0D;" onclick=${enableButton} >Enable</button>
-
       <button id=${disableBtnId} disabled=${disabledSta} class="btn" 
       style="margin-left: 1em; background: #8aa;"  onclick=${disableButton}>Disable</button>
       </div>
-
+      
       <div id=${logId} style="height: 30em; overflow: auto; padding: 0.5em; " class="border">
           ${props.log.map(log => h(showLonLine, { log }))}
       </div>
+      
+      
   </div>
-  </div>
+  </div> 
+ 
   `;
 };
 // ${log.map(log => h(showLonLine, {log}))}
 const oneResetButton = props => {
   const [bgroundColor, set_bgroundColor] = useState("#adbbe5");
-  const resetPinExec = (action) =>{
+  const resetPinExec = (action) => {
     fetch('/api/trstExec', {
-    method: 'post',
-    body: `&resetPin=${props.resetPin}&action=${action}`
+      method: 'post',
+      body: `&resetPin=${props.resetPin}&action=${action}`
     }).catch(err => err);
-    console.log("oneResetButton click oneResetButton",props.resetPin);
+    console.log("oneResetButton click oneResetButton", props.resetPin);
   };
   console.log("oneResetButton run ...");
   return html`
@@ -1080,7 +1104,8 @@ const OcdConfigPage = function (props) {
   }
 
   return html`
-  <div class="row">
+
+    <div class="row">
     <${oneOcdConfig} inface="OCD0" port=${6400} cfgList=${cfgList} cfg=${ocd0cfg} sta=${ocd0Status} log=${ocd0Log}/> 
     <div class="col col-0"></div>
     <${oneOcdConfig} inface="OCD1" port=${6401} cfgList=${cfgList} cfg=${ocd1cfg} sta=${ocd1Status} log=${ocd1Log}/>
@@ -1096,8 +1121,8 @@ const OcdConfigPage = function (props) {
 const SettingPage = function (props) {
   var l = window.location;
   var hostIp = l.host.split(':')[0];
-  if (props.page != 4) return ``;
-  return html `
+  if (props.page != 5) return ``;
+  return html`
   <div class="row">
     <div class="col col-5-5">
     <div class="item" >
@@ -1141,6 +1166,287 @@ const SettingPage = function (props) {
   </div>
   `;
 };
+
+// Send a large blob of data chunk by chunk
+var sendFileData = function (urlapi, name, data, chunkSize, onProgress) {
+  var sendChunk = function (offset) {
+    var chunk = data.subarray(offset, offset + chunkSize) || '';
+    var opts = { method: 'POST', body: chunk };
+    var url = urlapi + offset + '&name=' + encodeURIComponent(name);
+    var ok;
+    var setStatus = function () {
+      console.log("sendFileData.setStatus" + 'Uploading ' + name + ', bytes ' + offset + '..' + (offset + chunk.length) + ' of ' + data.length);
+
+    };
+
+
+    fetch(url, opts)
+      .then(function (res) {
+        if (res.ok && chunk.length > 0) {
+          if (onProgress) {
+            onProgress((offset / data.length).toFixed(2) * 100);
+          }
+          sendChunk(offset + chunk.length);
+        }
+
+        ok = res.ok;
+        //setStatus();
+        return res.text();
+      })
+      .then(function (text) {
+        if (!ok) //setStatus('Error: ' + text);
+          console.log("Error:" + text);
+      });
+  };
+  sendChunk(0);
+};
+
+const uploadSVFfile = function () {
+  const [filePercent, set_filePercent] = useState(0);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    console.log('Selected file:', file);
+    // You can process the selected file here
+  };
+
+  const handleUploadButtonClick = () => {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    console.log('Uploading file:', file);
+    var r = new FileReader();
+    r.readAsArrayBuffer(file);
+    // 发送文件到服务器的 POST 请求
+    // fetch('/api/svgfileupload?name='+encodeURIComponent(file.name), {
+    //     method: 'POST',
+    //     body: formData,
+    // })
+    r.onload = function () {
+      if(file.name.indexOf("svf") == -1){
+        set_filePercent("file format error! shuld xxx.svf");
+        return;
+      }
+      sendFileData('/api/svfFileupload?offset=', file.name, new Uint8Array(r.result), 2048,
+        function (updateOffset) {
+          set_filePercent(updateOffset);
+        });
+
+    }
+
+  };
+  return html`
+  
+    <div class="col col-5-5">
+      <div class="item" style="background:#0DA0EE;">
+        <div style="margin-top: 1em; background: #eee; padding: 1em; border-radius: 0.5em; color: #777; ">
+          <h1 style="margin: 0.2em 0;">Upload svf file:</h1>
+          <p>You can upload a CPLD/FPGA svf file </p>
+          <input type="file" id="fileInput" accept=".svf" onchange=${handleFileUpload}></input>
+          <button onclick=${handleUploadButtonClick}>Upload</button>
+          <code> process:${filePercent}% </code>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const editOcdCfgFormat = function () {
+  const [filePercent, set_filePercent] = useState(0);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    console.log('Selected file:', file);
+    // You can process the selected file here
+  };
+
+  const handleUploadButtonClick = () => {
+    const fileInput = document.getElementById('cfgfileInput');
+    const file = fileInput.files[0];
+    console.log('Uploading file:', file);
+    var r = new FileReader();
+    r.readAsArrayBuffer(file);
+
+    r.onload = function () {
+      if(file.name.indexOf("cfg") == -1){
+        set_filePercent("file format error! shuld xxx.cfg");
+        return;
+      }
+      sendFileData('/api/cfgFileupload?offset=', file.name, new Uint8Array(r.result), 2048,
+        
+      function (updateOffset) {
+          set_filePercent(updateOffset);
+        });
+
+    }
+
+  };
+  return html`
+  
+  <div class="item" style="background:#0DA0EE;">
+  <div style="margin-top: 1em; background: #eee; padding: 1em; border-radius: 0.5em; color: #777; ">
+  <h1 style="margin: 0.2em 0;">Generate cfg base on format:</h1>
+  <p>#1.The input value represents the frequency of the TCK, where 100 corresponds to 5MHz and 200 corresponds to 2.5MHz.</p>
+  <p>#  etc adapter speed 200 ... </p>
+  <p><b>adapter speed xxx </b></p>
+  <p>#2.Please enter the name of the chip you need to debug, for example, S3C2410, and so on.</p>
+  <p><b>set _CHIPNAME xxxxxx</b></p>
+  <p>#3.Enter whether your chip is big-endian or little-endian.</p>
+  <p><b>set _ENDIAN bit\/little </b></p>
+  <p>#4.Find the CPUID value according to the chip manual. For example 0x0032409d</p>
+  <p><b>set _CPUTAPID 0x0032409d </b></p>
+  <p><b>jtag newtap $_CHIPNAME cpu -irlen xxxx
+  -ircapture xx -irmask 0xxx -expected-id $_CPUTAPID</b></p>
+  <p><b>set _TARGETNAME $_CHIPNAME.cpu</b></p>
+  <p><b>target create $_TARGETNAME arm920t -endian $_ENDIAN -chain-position $_TARGETNAME</b></p>
+  <p><b>$_TARGETNAME configure -work-area-phys 0x200000 -work-area-size 0x4000 -work-area-backup 1</b></p><br></br>
+  <p>You can upload a xxx.cfg file </p>
+          <input type="file" id="cfgfileInput" accept=".cfg" onchange=${handleFileUpload}></input>
+          <button onclick=${handleUploadButtonClick}>Upload</button>
+          <code> process:${filePercent}% </code>
+  
+  </div>
+  </div>
+
+  `;
+};
+
+
+
+const manageCFGFile = function (props) {
+  // console.log("manageCFGFile->: "+props.cfgList);
+  // console.log("cfgList[0]->:"+props.cfgList[0]);
+  props.cfgList = props.cfgList.filter(item=>item!=="Xilinx_XVC" && item !== "usbip_CMSISDAP");
+  const pushDelCfgMsg = (action, cfg) => {
+    fetch('/api/manegeOcdCfgFile', {
+      method: 'post',
+      body: `ocd=${props.inface}&cfg=${cfg}&action=${action}`
+    }
+    ).catch(err => err);
+  }
+
+  const deleteBtn = ev => {
+    var e = document.getElementById("fileList_id");
+    var cfgName = e.value;
+    // console.log("manageCFGFile delte button <" + cfgName +">");
+    //pushDelCfgMsg("delete", cfgName);
+    if (confirm("Are you sure you want to delete " + cfgName + "?")) {
+      // 如果用户点击确认，则执行删除操作
+      pushDelCfgMsg("delete", cfgName);
+    } else {
+      // 如果用户取消删除操作，可以在这里编写相应的逻辑
+      console.log("Deletion cancelled by user");
+    }
+  }
+  const [cfgFileContext, set_cfgFileContext] = useState("waiting");
+  const [cfgFileName, set_cfgFileName] = useState("NULL");
+  const getCfgContext = ( cfg) => {
+    fetch('/api/getOcdCfgFileContext', {
+      method: 'post',
+      body: `ocd=${props.inface}&cfg=${cfg}`
+    }
+    )
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json(); // 假设服务器端返回的数据是JSON格式
+    })
+    .then(data => {
+      // 在这里处理从服务器返回的数据
+      // console.log('data=>');
+      // console.log(data);
+
+      set_cfgFileContext(data.complexField);
+      set_cfgFileName(cfg);
+    })
+    .catch(err => err);
+  }
+  
+  const viewCfgBtn = ev => {
+    var e = document.getElementById("fileList_id");
+    var cfgName = e.value;
+    console.log("manageCFGFile view cfg button <" + cfgName +">");
+    getCfgContext(cfgName);
+   
+  }
+  return html`
+  
+  <div class="col col-7">
+    <${viewCFGFile} fileName=${cfgFileName} fileContext=${cfgFileContext}/>
+  </div>
+
+  <div class="col col-5">
+  <div class="item" style="background:#0DA0EE;">
+  <div style="margin-top: 1em; background: #eee; padding: 1em; border-radius: 0.5em; color: #777; ">
+  <h1 style="margin: 0.2em 0;">Maneage .cfg Files</h1>
+  <br></br>
+  <div id=cfgfileArea_id style="height: 10em; overflow: auto; padding: 0.5em; " class="border">
+  <div style="margin: 0.5em 0; display: flex; justify-content: space-between;" > 
+  <select id=fileList_id value=${props.cfg} style="margin-left: 0.0em;">
+  ${props.cfgList.map(cfg => h(oneOcdCfg, { cfg }))}
+  </select>
+  <button id=deletBtn_id class="btn" style="margin-right: 0.0em; background: red;" 
+  onclick=${deleteBtn}>DELETE </button>
+  </div>
+  <button id=viewCfgBtn_id class="btn" style="margin-left: 1em; background: #9DEE0D;"
+  onclick=${viewCfgBtn}>VIEW </button>
+  </div>
+  </div>
+  </div>
+  </div>
+
+  `;
+};
+
+const viewCFGFile = function (props) {
+  //console.log("viewCFGFile->: "+props.cfgList);
+
+  return html`
+  
+  <div class="item" style="background:#0DA0EE;">
+  <div style="margin-top: 1em; background: #eee; padding: 1em; border-radius: 0.5em; color: #777; ">
+  <h1 style="margin: 0.2em 0;">${props.fileName}.cfg</h1>
+  <br></br>
+  <div id=cfgfileArea_id style="height: 60em; overflow: auto; padding: 0.5em; " class="border">
+  <pre>${props.fileContext}</pre>
+  </div>
+  </div>
+  </div>
+
+  `;
+};
+
+const EditOcdCfg = function (props) {
+  var l = window.location;
+  const [cfgList, set_cfgList] = useState([]);
+  useEffect(() => {
+    const id = PubSub.subscribe(function (msg) {
+      if (msg.cfgConfig) {
+        set_cfgList(msg.list);
+        //console.log("EditOcdCfg:subscribe:", msg.list);//it can get cfgList
+      }
+
+    });
+    return PubSub.unsubscribe(id);
+  }, []);
+  if (props.page != 4) return ``;
+  return html`
+  <div class="row">
+    <${uploadSVFfile}/>
+  </div>
+
+  <div class="row">
+  <div class="col col-9">
+    <${editOcdCfgFormat}/>
+  </div>
+  </div>
+  
+  <div class="row">
+    <${manageCFGFile} cfgList=${cfgList}/>
+  </div>
+  `;
+};
+
 
 const App_1 = function (props) {
   const [user, setUser] = useState('');
@@ -1197,8 +1503,11 @@ const App_1 = function (props) {
       else if (msg.page == 'OcdConfig') {
         set_pageIndex(3);
       }
-      else if (msg.page == 'settingConfig') {
+      else if (msg.page == 'editOcdCfg') {
         set_pageIndex(4);
+      }
+      else if (msg.page == 'settingConfig') {
+        set_pageIndex(5);
       }
     });
   }, []);
@@ -1212,6 +1521,7 @@ const App_1 = function (props) {
         <${sysStaView} page=${pageIndex}/>
         <${ComconfigPage} page=${pageIndex}/>
         <${OcdConfigPage} page=${pageIndex}/>
+        <${EditOcdCfg} page=${pageIndex}/>
         <${SettingPage} page=${pageIndex}/>
       </div>
     </div>

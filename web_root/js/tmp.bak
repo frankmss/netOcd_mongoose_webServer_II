@@ -1,0 +1,49 @@
+const maneageCFGFile = function (props) {
+  //console.log("maneageCFGFile->: "+props.cfgList);
+  const cfgList = props.cfgList;
+  const parentElement = document.getElementById('cfgfileArea_id'); // 请替换为实际的父元素ID
+  cfgList.forEach((_, index) => {
+    // 创建<label>元素
+    console.log("forEach: index" + index + cfgList[index]);
+    const labelElement = document.createElement('label');
+    labelElement.setAttribute('for', `modal-${index + 1}`);
+    labelElement.setAttribute('class', 'modal-label');
+    labelElement.setAttribute('tabindex', '1');
+    labelElement.textContent = `${cfgList[index]}`;
+    labelElement.style.fontWeight = 'bold'; // 加粗字体
+
+
+    // 创建<input>元素
+    const inputElement = document.createElement('input');
+    inputElement.setAttribute('class', 'modal-state');
+    inputElement.setAttribute('id', `modal-${index + 1}`);
+    inputElement.setAttribute('type', 'checkbox');
+
+    // 创建<span>元素
+    const spanElement = document.createElement('span');
+    spanElement.setAttribute('style', 'margin-right: 20px;');
+
+    // 将<label>和<input>元素添加到父元素中
+    parentElement.appendChild(labelElement);
+    parentElement.appendChild(inputElement);
+    parentElement.appendChild(spanElement);
+    if ((index + 1) % 5 === 0) {
+      const brElement = document.createElement('br');
+      parentElement.appendChild(brElement);
+    }
+  });
+  return html`
+  
+  <div class="item" style="background:#0DA0EE;">
+  <div style="margin-top: 1em; background: #eee; padding: 1em; border-radius: 0.5em; color: #777; ">
+  <h1 style="margin: 0.2em 0;">Maneage .cfg Files</h1>
+  <br></br>
+
+    <div id=cfgfileArea_id style="height: 60em; overflow: auto; padding: 0.5em; " class="border">
+   
+    </div>
+  </div>
+  </div>
+
+  `;
+};

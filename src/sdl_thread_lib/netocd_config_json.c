@@ -201,10 +201,22 @@ void create_cfgJson(char *cfgList_str,int bufSize) {
       break;
     }
     if (cfgList_str[aIndex] == 10) {  // check lf ,is one filename;
-      // tmpFileName[tIndex] = '\0';
+      
       int tmp = 0;
       char *found;
       found = strstr(tmpFileName, ".cfg");
+      if (found != NULL) {
+        memcpy(availableName, tmpFileName, (found - tmpFileName));
+        //printf("-(%d)-\n%s\n---\n", nshift, availableName);
+        
+        tIndex = 0;
+        nshift++;
+        cJSON_AddItemReferenceToArray(js_cfglist, cJSON_CreateString(availableName));
+        memset(tmpFileName, 0, 100);
+        memset(availableName, 0, 100);
+      }
+      //for check .tcl file 2024-0409 add
+      found = strstr(tmpFileName, ".tcl");
       if (found != NULL) {
         memcpy(availableName, tmpFileName, (found - tmpFileName));
         //printf("-(%d)-\n%s\n---\n", nshift, availableName);
