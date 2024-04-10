@@ -48,8 +48,9 @@ struct json_netocd_config{
   struct jsonInterface interface;
   struct jsonOcd ocd;
 };
-
+#include "sdl_thread.h"
 // void create_ifcJson(struct swap_status *sstatus);
 void create_ifcJson(struct swap_status *sstatus, char *returnBuffer);
 int create_ocdJson(struct swap_status *sstatus, char *jOcdInfc);
+void create_cfgJson(char *cfgList_str,int bufSize);
 #endif //__NETOCD_CONFIG_JSON__

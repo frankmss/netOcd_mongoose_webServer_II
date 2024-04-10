@@ -35,6 +35,7 @@ int del_AocdCfgFile( char *fileName);
 int cat_cfgFileContext(char* fileName, char* rsp);
 int start_ocd(char *ocdName, char *cfgFile);
 int stop_ocd(char *ocdName);
+int start_trstPinLow(int32_t pinI);
 
 #define OPENOCD_PATH "/usr/local/openocd-withaxi/012"
 #endif

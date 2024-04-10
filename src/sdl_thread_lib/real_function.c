@@ -9,7 +9,7 @@ int exec_cmd(char *cmd, char *result) {
   char tmpBuf[4096];
   char *presult = result;
   int cnt = 0;
-  memset(tmpBuf, 4096, 0);
+  memset(tmpBuf, 0, 4096);
   /* Open the command for reading. */
   // fp = popen("/bin/ls /etc/", "r");
   // fp = popen(" cat /proc/stat |grep cpu |tail -1|awk \'{print
@@ -116,6 +116,7 @@ int converInterfacer2w(char *realName, char *wName) {
 }
 
 int start_can(char *wName, char *port, char *bps) {
+  port=port; //for void warming
   char realName[MAPNAME_SIZE];
   if (converInterfacew2r(wName, realName) != 0) {
     return -1;
@@ -136,10 +137,11 @@ int start_can(char *wName, char *port, char *bps) {
           realBps);
   exec_cmd(strCmd, exec_result);
   printf("cmd; %s\n", strCmd);
+  return 0;
 }
 
 int start_trstPinLow(int32_t pinI) {
-  char strCmd[100];
+  char strCmd[200];
   memset(strCmd, 0, sizeof(strCmd));
   sprintf(strCmd, "%s/netOcd_setTrstPin_%d", s_openocd_dir_user_asign, pinI);
   char exec_result[100];
@@ -153,7 +155,7 @@ int start_ser2net(char *wName, char *port, char *bps) {
   if (converInterfacew2r(wName, realName) != 0) {
     return -1;
   }
-  char strCmd[100];
+  char strCmd[200];
   // ser2net -C "6005:raw:600:/dev/ttyS5:115200 8DATABITS NONE 1STOPBIT banner"
   sprintf(strCmd,
           "%s/ser2net -C \"%s:raw:600:%s:%s 8DATABITS NONE 1STOPBIT banner\"",
@@ -194,6 +196,7 @@ int stop_can(char *wName) {
   char exec_result[100];
   exec_cmd(strCmd, exec_result);
   printf("cmd: %s\n", strCmd);
+  return 0;
 }
 
 int get_OcdCfgList(char *resultBuf) {
@@ -203,6 +206,7 @@ int get_OcdCfgList(char *resultBuf) {
   sprintf(cfgPath, "ls %s/tcl/target", OPENOCD_PATH);
   exec_cmd(cfgPath, resultBuf);
   // printf("cfgList:%s\n",resultBuf);
+  return 0;
 }
 
 int del_AocdCfgFile( char *fileName){
@@ -212,6 +216,7 @@ int del_AocdCfgFile( char *fileName){
   sprintf(cfgPath, "rm %s/tcl/target/%s.cfg -rf", OPENOCD_PATH, fileName);
   char exec_result[100];
   exec_cmd(cfgPath, exec_result);
+  return 0;
 }
 
 int cat_cfgFileContext(char* fileName, char* rsp){
@@ -220,6 +225,7 @@ int cat_cfgFileContext(char* fileName, char* rsp){
   sprintf(cfgPath, "cat %s/tcl/target/%s.cfg", OPENOCD_PATH, fileName);
   exec_cmd(cfgPath, rsp);
   //printf("------->%s", rsp);
+  return 0;
 }
 
 // openocd shoud run in fork thread, the thread start stop and check ocd sta
@@ -242,6 +248,7 @@ int start_ocd(char *ocdName, char *cfgFile) {
   swap_status.this_available = 1;
   push_cmd_to_swap(&swap_status);
   // int push_cmd_to_swap(struct swap_config_cmd *data);
+  return 0;
 }
 
 int stop_ocd(char *ocdName) {
@@ -258,4 +265,5 @@ int stop_ocd(char *ocdName) {
   }
   swap_status.this_available = 1;
   push_cmd_to_swap(&swap_status);
+  return 0;
 }

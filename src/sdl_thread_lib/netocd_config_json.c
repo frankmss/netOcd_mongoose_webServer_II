@@ -6,7 +6,7 @@
 #include "sdl_thread.h"
 #include "netocd_config_json.h"
 
-char *create_json_netocd_config(struct json_netocd_config *config) {}
+//char *create_json_netocd_config(struct json_netocd_config *config) {}
 
 int eInterfaceOne(struct jsonOneInterface *oneIfc, char *bps, char *sta) {
   sprintf((oneIfc->bps.name), "bps");
@@ -29,8 +29,8 @@ int eOcdOne(struct jsonOneOcd *oneOcd, char *fileName, char *cpu, char *sta) {
 cJSON *createOneIfc(cJSON *jOneIfc, struct jsonOneInterface *oneIfc) {
   // cJSON *jOneIfc = NULL;
   cJSON *jtmp = NULL;
-  cJSON *jbps = NULL;
-  cJSON *jsta = NULL;
+  //cJSON *jbps = NULL;
+  //cJSON *jsta = NULL;
 
   // jOneIfc=cJSON_CreateObject();
   cJSON_AddItemToObject(jOneIfc, oneIfc->nodeName, jtmp = cJSON_CreateObject());
@@ -79,7 +79,7 @@ extern struct interfaceMap interfaceMap;
 
 struct json_netocd_config sct_config;
 // char *create_ifcJson(struct swap_status *sstatus, char *returnBuffer) {
-create_ifcJson(struct swap_status *sstatus, char *returnBuffer) {
+void create_ifcJson(struct swap_status *sstatus, char *returnBuffer) {
   struct jsonInterface *pinterface;
   struct jsonOneInterface *ptmpOneIfc;
   memset((char *)(&sct_config), 0, sizeof(struct json_netocd_config));
@@ -202,7 +202,7 @@ void create_cfgJson(char *cfgList_str,int bufSize) {
     }
     if (cfgList_str[aIndex] == 10) {  // check lf ,is one filename;
       
-      int tmp = 0;
+      //int tmp = 0;
       char *found;
       found = strstr(tmpFileName, ".cfg");
       if (found != NULL) {
@@ -290,6 +290,7 @@ int create_ocdJson(struct swap_status *sstatus, char *jOcdInfc){
   // disable means openocd is not run,
   // enable means openocd is running,
   if(ocdSta0->pid == 0){
+
     cJSON_AddItemToObject(jocd0, "sta", cJSON_CreateString("halt"));
   }else if(ocdSta0->pid == -1){
     cJSON_AddItemToObject(jocd0, "sta", cJSON_CreateString("disable"));
@@ -362,6 +363,7 @@ int create_ocdJson(struct swap_status *sstatus, char *jOcdInfc){
   cJSON_Delete(jOcdInterface);
   
   cJSON_free(pstr);
+  return 0;
 }
 
 // void main(void){

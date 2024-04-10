@@ -37,11 +37,14 @@ extern int pipefds[2];
 static int s_data[DATA_SIZE];  // Simulate some complex big data
 static long s_version = 0;     // Data "version"
 
+
+#if 0 //for void warning
 static long getparam(struct mg_http_message *hm, const char *json_path) {
   double dv = 0;
   mg_json_get_num(hm->body, json_path, &dv);
   return dv;
 }
+
 
 static size_t printdata(mg_pfn_t out, void *ptr, va_list *ap) {
   unsigned start = va_arg(*ap, unsigned);
@@ -56,6 +59,7 @@ static size_t printdata(mg_pfn_t out, void *ptr, va_list *ap) {
   }
   return n;
 }
+#endif
 
 // static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
 //   if (ev == MG_EV_HTTP_MSG) {

@@ -12,7 +12,7 @@ extern struct swap_status s2m_data;
 static time_t s_boot_timestamp = 0;               // Updated by SNTP
 static struct mg_connection *s_sntp_conn = NULL;  // SNTP connection
 // static const char *s_root_dir = "web_root";
-static const char *s_root_dir = "/usr/local/mongoose_netocd/web_root";
+//static const char *s_root_dir = "/usr/local/mongoose_netocd/web_root";
 extern char s_root_dir_user_asign[100];
 // Define system time()
 time_t time(time_t *tp) {
@@ -89,7 +89,7 @@ static void send_notification(struct mg_mgr *mgr, const char *fmt, ...) {
   }
 }
 
-gs_OcdCfgsList(struct mg_mgr *mgr) {
+void gs_OcdCfgsList(struct mg_mgr *mgr) {
 #define resultBufsize 4096 * 2
   char resultBuf[resultBufsize];
   memset(resultBuf, 0, resultBufsize);
@@ -110,8 +110,8 @@ static void timer_metrics_fn(void *param) {
 
 static void timer_getInterface_sta(void *param) {
   struct swap_status main_sta_data;
-  int i;
-  char *pstr;
+  //int i;
+  //char *pstr;
   char msgBuf[2048];
   char ocdBuf[4096 + 2048];
   int cpusage = 0;   //
@@ -211,7 +211,7 @@ static void timer_sntp_fn(void *param) {  // SNTP timer function. Sync up time
 }
 
 void opr_interface(struct mg_http_message *hm) {
-  char bufx[50];
+  
   char interfaceBuf[20];
   char portBuf[20];
   char bpsBuf[20];
@@ -236,7 +236,7 @@ void opr_interface(struct mg_http_message *hm) {
       if (strcmp(interfaceBuf, "CAN0") == 0 ||
           strcmp(interfaceBuf, "CAN1") == 0) {
         printf("can %s should be enable\n", interfaceBuf);
-        int tmp = start_can(interfaceBuf, portBuf, bpsBuf);
+        start_can(interfaceBuf, portBuf, bpsBuf);
       } else {
         printf("com %s should be enable\n", interfaceBuf);
         int tmp = start_ser2net(interfaceBuf, portBuf, bpsBuf);
@@ -246,13 +246,13 @@ void opr_interface(struct mg_http_message *hm) {
       if (strcmp(interfaceBuf, "CAN0") == 0 ||
           strcmp(interfaceBuf, "CAN1") == 0) {
         printf("can %s should be disable\n", interfaceBuf);
-        int tmp = stop_can(interfaceBuf);
+        stop_can(interfaceBuf);
       } else {
         struct swap_status main_sta_data;
 
         memset((char *)(&main_sta_data), 0, sizeof(struct swap_status));
         get_status_data_from_bk(&main_sta_data, &s2m_data);
-        int tmp = stop_ser2net(interfaceBuf, &main_sta_data);
+        stop_ser2net(interfaceBuf, &main_sta_data);
         printf("com %s should be disable\n", interfaceBuf);
       }
     }
@@ -309,7 +309,7 @@ void opr_trstPinLow(struct mg_http_message *hm) {
   int32_t pinI = -1;
   int yy = mg_http_get_var(&hm->body, "resetPin", resetPin, sizeof(resetPin));
   if ((yy > 0)) {
-    printf("opr_trstPinLow->trstPin(%d)\n", resetPin);
+    printf("opr_trstPinLow->trstPin(%s)\n", resetPin);
     if (strstr(resetPin, "trst0") != NULL) {
       pinI = 0;
     } else if (strstr(resetPin, "trst1") != NULL) {  // trst1

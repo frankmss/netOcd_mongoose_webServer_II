@@ -908,6 +908,7 @@ const oneOcdConfig = props => {
 
   //const [slectCfg, set_slectCfg] = useState("");
   // console.log(props.inface,"log0", log);
+  console.log("oneOcdConfig->"+props.inface+"->"+props.sta);
   if (props.sta == 'disable') {
     set_enableSta('');
     set_disabledSta("disable");

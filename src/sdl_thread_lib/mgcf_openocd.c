@@ -19,7 +19,7 @@ int fork_exec_cmd(char *cmd, char *result) {
   char tmpBuf[4096];
   char *presult = result;
   int cnt = 0;
-  memset(tmpBuf, 4096, 0);
+  memset(tmpBuf, 0, 4096);
   /* Open the command for reading. */
   // fp = popen("/bin/ls /etc/", "r");
   // fp = popen(" cat /proc/stat |grep cpu |tail -1|awk \'{print
@@ -47,22 +47,19 @@ int fork_exec_cmd(char *cmd, char *result) {
 }
 
 int cRm_msg(int fd, struct m2c_msg *m2cbuf) {
-  char oneChar[1];
-  int aIndex = 0;
+  
   char *pm2cbuf = (char *)m2cbuf;
   memset(pm2cbuf, 0, sizeof(struct m2c_msg));
   int x = read(fd, pm2cbuf, sizeof(struct m2c_msg));
-  // printf("cRm_msg:%d(%d)\n", x, sizeof(struct m2c_msg));
-  // printf("cRm_msg.head:0x%x, tail:0x%x\n",m2cbuf->head, m2cbuf->tail);
+  
   if (x != sizeof(struct m2c_msg)) {
-    // printf("cRm_msg: read fork thread error 1\n");
     return -1;
   }
   if ((m2cbuf->head == M2CMSG_HEAD) && (m2cbuf->tail == M2CMSG_TAIL)) {
-    // printf("cRm_msg: read ok\n");
+    
     return 0;
   } else {
-    // printf("cRm_msg: read fork thread error 2\n");
+   
     return -1;
   }
 }
@@ -161,7 +158,7 @@ void initFp(struct forkProcessDes *fpDes) {
       int rf = 0;
       int fstd = 0;
       int i = 0;
-      int k = 0;
+      //int k = 0;
       char pidSaveCfg[64];
       struct c2m_msg c2m_msg;
       struct m2c_msg m2c_msg;
@@ -229,9 +226,7 @@ void initFp(struct forkProcessDes *fpDes) {
   }
 }
 
-int mRc_msg(int fd, struct c2m_msg *c2mbuf) {
-  char oneChar[1];
-  int aIndex = 0;
+int mRc_msg(int fd, struct c2m_msg *c2mbuf) { 
   int k = 0;
   char *pc2mbuf = (char *)c2mbuf;
   memset(pc2mbuf, 0, sizeof(struct c2m_msg));
@@ -368,7 +363,6 @@ int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile) {
 }
 
 int get_status_from_forkThread(int ocdId, struct _ocd_status *ocdSta) {
-  int tmp;
   int rflag = -1;
   struct c2m_msg c2m_msg;
   if (!(ocdId != 0 || ocdId != 1)) {  // there is no this ocd

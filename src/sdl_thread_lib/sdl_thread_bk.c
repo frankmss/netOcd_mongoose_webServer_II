@@ -7,6 +7,7 @@
 
 #include "real_function.h"
 #include "sdl_thread.h"
+#include "mgcf_openocd.h"
 
 struct swap_config_cmd m2s_data;
 struct swap_status s2m_data;
@@ -40,6 +41,7 @@ int push_cmd_to_swap(struct swap_config_cmd *data) {
 
   memcpy(swap, data, sizeof(struct swap_config_cmd));
   SDL_UnlockMutex(swap->gBufferLock);
+  return 0;
 }
 
 void push_status_data_to_mst(struct swap_status *dest,
@@ -109,7 +111,7 @@ int parseArgs_ser2net(char *psrc, char *pid, char *port, char *realDevName,
     int iport = 0;
 
     sscanf(psrc,
-    "root%d/netOcd_bin/third3_bin/ser2net-C%draw600%s8DATABITSNONE1STOPBITbanner",
+    "root%d/usr/local/openocd-withaxi/netOcd_bin/third3_bin/ser2net-C%draw600%s8DATABITSNONE1STOPBITbanner",
     &ipid, &iport, devBps);
 
 
@@ -329,7 +331,7 @@ void runtine(struct swap_status *sta_dat) {
     if (getOcdSta == 0) {
       // should convert json;
       printf("threak_bk %s pid:%d \n", ocdSta->name, ocdSta->pid);
-      int k = 0;
+      //int k = 0;
       // for(k=0;k<OPENOCD_LOG_LINES;k++){
       //   if(strlen(ocdSta->ocdlog.logBuf[k])!=0){
       //     printf("ocd0 log:%s\n",ocdSta->ocdlog.logBuf[k]);
@@ -341,7 +343,7 @@ void runtine(struct swap_status *sta_dat) {
     if (getOcdSta == 0) {
       // should convert json;
       printf("threak_bk %s pid:%d\n", ocdSta->name, ocdSta->pid);
-      int k = 0;
+      //int k = 0;
       // for(k=0;k<OPENOCD_LOG_LINES;k++){
       //   if(strlen(ocdSta->ocdlog.logBuf[k])!=0){
       //     printf("ocd1 log:%s\n",ocdSta->ocdlog.logBuf[k]);
@@ -357,18 +359,11 @@ void runtine(struct swap_status *sta_dat) {
 // exec sqlite
 // and so on ...
 int sdl_thread_bk(void *data) {
-  struct swap_config_cmd cmd_data;
-  struct swap_status sta_data;
-  int get_data = 0;
+  struct swap_status sta_data; 
   data = data;
   init_mutex();
 
   while (1) {
-    // get_data = from_swap_get_dat(&m2s_data, &cmd_data);
-    // if (get_data == 1) {
-    //   exec_cmds_queue((struct swap_config_cmd *)(&cmd_data));
-    // }
-
     runtine((struct swap_status *)(&sta_data));
     push_status_data_to_mst(&s2m_data, &sta_data);
     SDL_Delay(1000);
