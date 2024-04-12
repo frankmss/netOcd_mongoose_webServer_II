@@ -281,6 +281,10 @@ void init_mgcf_openocd(void) {
   fpDes[1].rf = fpDes[1].rpipefds[0];
   fpDes[1].wf = fpDes[1].wpipefds[1];
 }
+void forcKillFpProcess(void){
+  kill(fpDes[0].pid, SIGTERM);
+  kill(fpDes[1].pid, SIGTERM);
+}
 
 // only for opr openocd thread,
 //  cmd contain start, check, stop

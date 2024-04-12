@@ -170,6 +170,81 @@ void create_ifcJson(struct swap_status *sstatus, char *returnBuffer) {
 
   // return pstr;
 }
+
+void create_svfJson(char *cfgList_str,int bufSize) {
+  char tmpFileName[100], availableName[100];
+  cJSON *js_cfglist = NULL;
+  cJSON *jsOneFile = NULL;
+  cJSON *name = NULL;
+  cJSON *cfgConfig = cJSON_CreateObject();
+  if (cfgConfig == NULL) {
+    goto end;
+  }
+  name = cJSON_CreateString("svfConfig");
+  if (name == NULL) {
+    goto end;
+  }
+  cJSON_AddItemToObject(cfgConfig, "svfConfig", name);
+
+  js_cfglist = cJSON_CreateArray();
+  if (js_cfglist == NULL) {
+    goto end;
+  }
+  cJSON_AddItemToObject(cfgConfig, "list", js_cfglist);
+  jsOneFile = cJSON_CreateObject();
+  if (jsOneFile == NULL) {
+    goto end;
+  }
+  
+  int aIndex = 0, tIndex = 0, nshift = 0;
+  while (1) {
+    if (cfgList_str[aIndex] == '\0') {
+      break;
+    }
+    if (cfgList_str[aIndex] == 10) {  // check lf ,is one filename;
+      
+      //int tmp = 0;
+      char *found;
+      found = strstr(tmpFileName, ".svf");
+      if (found != NULL) {
+        memcpy(availableName, tmpFileName, (found - tmpFileName));
+        //printf("-(%d)-\n%s\n---\n", nshift, availableName);
+        
+        tIndex = 0;
+        nshift++;
+        cJSON_AddItemReferenceToArray(js_cfglist, cJSON_CreateString(availableName));
+        memset(tmpFileName, 0, 100);
+        memset(availableName, 0, 100);
+      }
+  
+      // jsOneFile = cJSON_CreateObject();
+      // if (jsOneFile == NULL) {
+      //   goto end;
+      // }
+
+    } else {  // the context is file name;
+      tmpFileName[tIndex++] = cfgList_str[aIndex];
+    }
+    // if (nshift > 10) {
+    //   break;
+    // }
+    aIndex++;
+  }
+  char *pstr = cJSON_Print(cfgConfig);
+  // char *pstr = cJSON_PrintUnformatted(cfgConfig);
+  printf("create svf file list ok\n");
+  printf("%s\n",pstr);
+  memset(cfgList_str,0,bufSize);
+  strcpy(cfgList_str,pstr );
+  cJSON_free(pstr);
+  cJSON_Delete(cfgConfig);
+  return ;
+end:
+  printf("create ocdCfg fail !!!\n");
+  cJSON_Delete(cfgConfig);
+  return;
+}
+
 void create_cfgJson(char *cfgList_str,int bufSize) {
   char tmpFileName[100], availableName[100];
   cJSON *js_cfglist = NULL;

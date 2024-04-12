@@ -219,6 +219,32 @@ int del_AocdCfgFile( char *fileName){
   return 0;
 }
 
+int del_SVFFile( char* fileName){
+  char svfPath[100];
+  memset(svfPath, 0, 100);
+  sprintf(svfPath, "rm /usr/local/openocd-withaxi/012/usrSvfDir/%s.svf", fileName);
+  char exec_result[100];
+  exec_cmd(svfPath, exec_result);
+  return 0;
+}
+
+int upgrade_reboot_sys(void){
+  char rebootCmd[100];
+  memset(rebootCmd, 0, 100);
+  sprintf(rebootCmd, "reboot");
+  char exec_result[100];
+  exec_cmd(rebootCmd, exec_result);
+  return 0;
+}
+
+int getSVFList(char* cmdRsp){
+  char lsSVFcmd[100];
+  memset(lsSVFcmd, 0, 100);
+  sprintf(lsSVFcmd, "ls /usr/local/openocd-withaxi/012/usrSvfDir");
+  exec_cmd(lsSVFcmd, cmdRsp);
+  return 0;
+}
+
 int cat_cfgFileContext(char* fileName, char* rsp){
   char cfgPath[100];
   memset(cfgPath, 0, 100);

@@ -43,6 +43,7 @@ struct forkProcessDes {
 };
 
 void init_mgcf_openocd(void);
+void forcKillFpProcess(void);
 int get_status_from_forkThread(int ocdId, struct _ocd_status *ocdSta);
 // only for opr openocd thread,
 // cmd contain start, check, stop

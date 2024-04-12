@@ -2,6 +2,7 @@
 #include "./sdl_thread_lib/real_function.h"
 #include "./sdl_thread_lib/sdl_thread.h"
 #include "mongoose.h"
+#include "./sdl_thread_lib/mgcf_openocd.h"
 
 #define MQTT_SERVER "mqtt://broker.hivemq.com:1883"
 #define MQTT_PUBLISH_TOPIC "mg/my_device"
@@ -295,6 +296,31 @@ void manageOcdFile(struct mg_http_message *hm){
   }
 }
 
+void manageSVFFile(struct mg_http_message *hm){
+  char svf[64];
+  // char action[16];
+  int svfi=0;
+  svfi = mg_http_get_var(&hm->body, "svfFile", svf, sizeof(svf));
+  if(svfi>0){
+    printf("manageSVFFile: del %s.svf", svf);
+    del_SVFFile(svf);
+  }
+}
+
+void rebootSys(struct mg_http_message *hm){
+  hm = hm;
+  printf("exec reboot sys for update sys ...\n");
+  //upgrade_reboot_sys();
+  //exit 0, openocd_update_autoRun.sh exec reboot
+  printf("netOcd should reboot because user\n");
+  system("sync /usr/local/");
+  forcKillFpProcess(); // kill fork process
+  int pid = getpid();
+  kill(pid, SIGTERM);
+  exit(0);
+  //system("");
+}
+
 void catOcdFileContext(struct mg_http_message *hm, char *rsp){
   char cfg[64];
   int cfgi = 0;
@@ -302,6 +328,15 @@ void catOcdFileContext(struct mg_http_message *hm, char *rsp){
   if(cfgi>0){
     cat_cfgFileContext(cfg, rsp);
   }
+}
+
+void catSFVFileList(struct mg_http_message *hm, char *rspJsonStr){
+  hm = hm;
+  
+  getSVFList(rspJsonStr);
+  //create sfv list json
+  create_svfJson(rspJsonStr, resultBufsize);
+  
 }
 
 void opr_trstPinLow(struct mg_http_message *hm) {
@@ -454,7 +489,53 @@ void device_dashboard_fn(struct mg_connection *c, int ev, void *ev_data,
                     "/usr/local/openocd-withaxi/012/tcl/target/%s", name);
         mg_http_upload(c, hm, &mg_fs_posix, mg_remove_double_dots(path),
                        512000);
-      }
+      } 
+    } else if(mg_http_match_uri(hm, "/api/updateFileupload")){
+      char path[80], name[64];
+
+      mg_http_get_var(&hm->query, "name", name, sizeof(name));
+
+      printf("/api/updateFileupload--name-->%s\n", name);
+      if (name[0] == '\0') {
+        mg_http_reply(c, 400, "", "%s", "name required");
+        // fprintf(name, "xyz123.bin");
+      } else {
+        mg_snprintf(path, sizeof(path),
+                    "/usr/local/%s", "openocd-withaxi.tar.gz"); //force all update file name -> openocd-withaxi.tar.gz
+        mg_http_upload(c, hm, &mg_fs_posix, mg_remove_double_dots(path),
+                       512*1024*1024);
+      } 
+
+    }else if(mg_http_match_uri(hm, "/api/updateCheckFileupload")){
+      char path[80], name[64];
+
+      mg_http_get_var(&hm->query, "name", name, sizeof(name));
+
+      printf("/api/updateCheckFileupload--name-->%s\n", name);
+      if (name[0] == '\0') {
+        mg_http_reply(c, 400, "", "%s", "name required");
+        // fprintf(name, "xyz123.bin");
+      } else {
+        mg_snprintf(path, sizeof(path),
+                    "/usr/local/%s", "netOcdCheck.txt"); //force all update file name -> openocd-withaxi.tar.gz
+        mg_http_upload(c, hm, &mg_fs_posix, mg_remove_double_dots(path),
+                       4096);
+      } 
+
+    }  else if (mg_http_match_uri(hm, "/api/freshSVFFileList")){
+      const char *headers = "content-type: text/json\r\n";
+
+      char p_catRsp[resultBufsize];
+      catSFVFileList(hm, p_catRsp);
+      //printf("net should rsp context: %s",p_catRsp);
+      mg_http_reply(c, 200, headers, "%s",p_catRsp==NULL? "":p_catRsp);
+      
+    } else if(mg_http_match_uri(hm,"/api/RebootSysCmd")){
+      rebootSys(hm);
+      mg_http_reply(c, 200, "", "ok\n");
+    } else if (mg_http_match_uri(hm, "/api/delSVFfile")) {
+      manageSVFFile(hm);
+      mg_http_reply(c, 200, "", "ok\n");
     } else {
       struct mg_http_serve_opts opts = {0};
       // opts.root_dir = s_root_dir;

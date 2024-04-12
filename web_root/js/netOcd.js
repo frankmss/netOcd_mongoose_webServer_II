@@ -1120,8 +1120,113 @@ const OcdConfigPage = function (props) {
 };
 
 const SettingPage = function (props) {
+  const [tipfilePercent, set_tipfilePercent] = useState(0);
+  const [tipCheckPercent, set_tipCheckPercent] = useState(0);
   var l = window.location;
   var hostIp = l.host.split(':')[0];
+  var version = "V1.2.7k";
+  const handleUpdateFileUpload = (event) => {
+    const file = event.target.files[0];
+
+  };
+  const handleUploadUPDATE = () => {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    // console.log('Uploading file:', file);
+    var r = new FileReader();
+    r.readAsArrayBuffer(file);
+
+    r.onload = function () {
+      if(file.name.indexOf("tar.gz") == -1){
+        set_tipfilePercent("file format error! shuld xxx.tar.gz");
+        return;
+      }
+      sendFileData('/api/updateFileupload?offset=', file.name, new Uint8Array(r.result), 2048,
+        function (updateOffset) {
+          set_tipfilePercent(updateOffset);
+        });
+    }
+  };
+
+  const handleUploadCheck = () => {
+    const fileInput = document.getElementById('checkfileInput');
+    const file = fileInput.files[0];
+    // console.log('Uploading file:', file);
+    var r = new FileReader();
+    r.readAsArrayBuffer(file);
+
+    r.onload = function () {
+      if(file.name.indexOf(".txt") == -1){
+        set_tipCheckPercent("file format error! shuld xxx.tar.gz");
+        return;
+      }
+      sendFileData('/api/updateCheckFileupload?offset=', file.name, new Uint8Array(r.result), 2048,
+        function (updateOffset) {
+          set_tipCheckPercent(updateOffset);
+        });
+    }
+  };
+  const updateCheckFileBtn = ev => {
+   
+    console.log("tip: updateCheckFile Btn <");
+    //pushDelCfgMsg("delete", cfgName);
+    if (confirm("Are you sure you want to update check file!" + "?")) {
+      // 如果用户点击确认，则执行删除操作
+      console.log("tip: updateCheckFile Btn < 1");
+      handleUploadCheck();
+    } else {
+      // 如果用户取消删除操作，可以在这里编写相应的逻辑
+      console.log("Deletion cancelled by user");
+    }
+  }
+
+  const updateFileBtn = ev => {
+    var e = document.getElementById("fileInput");
+    var updateFile = e.value;
+    var filename = updateFile.replace(/^.*[\\\/]/, '');//去除路径，只保留文件名
+  
+    var confirmation = document.createElement('div');
+    confirmation.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border: 1px solid #000; text-align: center; z-index: 9999;';
+    var message = document.createElement('p');
+    var filenameSpan = document.createElement('span');
+    filenameSpan.textContent = filename;
+    filenameSpan.style.color = 'red';
+    
+    message.textContent = 'Are you sure you want to update ';
+    message.appendChild(filenameSpan);
+    message.textContent += ' ?';
+    confirmation.appendChild(message);
+    
+    var confirmButton = document.createElement('button');
+    confirmButton.textContent = 'Confirm';
+    confirmButton.style.marginRight = '10px';
+    confirmButton.addEventListener('click', () => {
+      // 用户点击确认后的操作
+      handleUploadUPDATE();
+      confirmation.remove();
+    });
+    
+    var cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', () => {
+      // 用户取消操作后的操作
+      console.log('Update Cancelled by user');
+      confirmation.remove();
+    });
+    
+    confirmation.appendChild(confirmButton);
+    confirmation.appendChild(cancelButton);
+    document.body.appendChild(confirmation);
+  }
+
+  const pushRebootSys = () =>{
+    fetch('/api/RebootSysCmd',{
+      method: 'post',
+      body: `act="reboot"`
+    }
+    )
+    .catch(err => err);
+  }
   if (props.page != 5) return ``;
   return html`
   <div class="row">
@@ -1165,6 +1270,29 @@ const SettingPage = function (props) {
     </div>
     </div>
   </div>
+  <div class="row">
+  <div class="col col-5-5">
+  <div class="item" style="background:red" >
+    <div style="margin-top: 1em; background: #eee; padding: 1em; border-radius: 0.5em; color: #777; ">
+    <h1 style="margin: 0.2em 0;">UPDATE SYSTEM</h1>
+    <p> current version: ${version}</p>
+    <p style="color:red"> Please make sure to use the official compression package, as the system will not be able to continue operating. Please proceed with caution !!!</p>
+    <p style="color:red">Select the upload file, wait for the successful transfer, and manually restart the system to complete the system update.</p>
+    <!--<input type="file" id="fileInput" accept=".tar.gz" onchange=${handleUpdateFileUpload}></input>-->
+    <label for="fileInput">Choose tar.gz file: <input type="file" id="fileInput" accept=".tar.gz" onchange=${handleUpdateFileUpload}></input></label>
+    <button onclick=${updateFileBtn}>Upload</button>
+    <code> process:${tipfilePercent}% </code>
+    <br></br>
+    <br></br>
+    <label for="checkfileInput">Choose check file: <input type="file" id="checkfileInput" accept=".txt" onchange=${handleUpdateFileUpload}></input></label>
+    <button onclick=${updateCheckFileBtn}>Upload</button>
+    <br></br>
+    <p>push execUPgrade button, after 5 second rebset sys manually</p>
+    <button onclick=${pushRebootSys}>forceSYNC</button>
+    </div>
+    </div>
+  </div>
+  </div>
   `;
 };
 
@@ -1185,7 +1313,10 @@ var sendFileData = function (urlapi, name, data, chunkSize, onProgress) {
       .then(function (res) {
         if (res.ok && chunk.length > 0) {
           if (onProgress) {
-            onProgress((offset / data.length).toFixed(2) * 100);
+            let progress = (offset / data.length).toFixed(2) * 100;
+            if(Math.abs(progress-100)<1.5){progress=100;}
+            onProgress(progress);
+            // onProgress((offset / data.length).toFixed(2) * 100);
           }
           sendChunk(offset + chunk.length);
         }
@@ -1204,17 +1335,15 @@ var sendFileData = function (urlapi, name, data, chunkSize, onProgress) {
 
 const uploadSVFfile = function () {
   const [filePercent, set_filePercent] = useState(0);
-
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    console.log('Selected file:', file);
+    // console.log('Selected file:', file);
     // You can process the selected file here
   };
-
   const handleUploadButtonClick = () => {
     const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];
-    console.log('Uploading file:', file);
+    // console.log('Uploading file:', file);
     var r = new FileReader();
     r.readAsArrayBuffer(file);
     // 发送文件到服务器的 POST 请求
@@ -1231,10 +1360,9 @@ const uploadSVFfile = function () {
         function (updateOffset) {
           set_filePercent(updateOffset);
         });
-
     }
-
   };
+
   return html`
   
     <div class="col col-5-5">
@@ -1245,6 +1373,72 @@ const uploadSVFfile = function () {
           <input type="file" id="fileInput" accept=".svf" onchange=${handleFileUpload}></input>
           <button onclick=${handleUploadButtonClick}>Upload</button>
           <code> process:${filePercent}% </code>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const manageSVFfile = function () {
+  const [svfList, set_svfList] = useState(["click Fresh get fileList"]);
+  const pushRefreshSVFList = () =>{
+    fetch('/api/freshSVFFileList',{
+      method: 'post',
+      body: `ocd="getSVFlist"`
+    }
+    )
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json(); // 假设服务器端返回的数据是JSON格式
+    })
+    .then(data => {
+      // 在这里处理从服务器返回的数据
+      // console.log('data=>');
+      // // console.log(data);
+      // console.log(data.list);
+      set_svfList(data.list);
+
+    })
+    .catch(err => err);
+  }
+
+  const delSVFfile = (svfName) =>{
+    fetch('/api/delSVFfile',{
+      method: 'post',
+      body: `svfFile=${svfName}`
+    }
+    ).catch(err => err);
+  }
+  const deleteBtn = ev => {
+    var e = document.getElementById("svffileList_id");
+    var cfgName = e.value;
+    // console.log("manageCFGFile delte button <" + cfgName +">");
+    //pushDelCfgMsg("delete", cfgName);
+    if (confirm("Are you sure you want to delete " + cfgName + "?")) {
+      // 如果用户点击确认，则执行删除操作
+      delSVFfile(cfgName);
+      pushRefreshSVFList();
+    } else {
+      // 如果用户取消删除操作，可以在这里编写相应的逻辑
+      console.log("Deletion cancelled by user");
+    }
+  }
+
+  return html`
+    <div class="col col-5-5">
+      <div class="item" style="background:#0DA0EE;">
+        <div style="margin-top: 1em; background: #eee; padding: 1em; border-radius: 0.5em; color: #777; ">
+          <h1 style="margin: 0.2em 0;">Maneage svf file:</h1>
+          <p>You can check or del a CPLD/FPGA svf file </p>
+          <select id=svffileList_id style="margin-left: 0.0em;">
+          ${svfList.map(cfg => h(oneOcdCfg, { cfg }))}
+          </select>
+          <button id=freshBtn_id class="btn" style="margin-left: 1.0em; background: green;" 
+            onclick=${pushRefreshSVFList}>Fresh </button>
+          <button id=delBtn_id class="btn" style="margin-left: 5.0em; background: red;" 
+            onclick=${deleteBtn}>DEL </button>
         </div>
       </div>
     </div>
@@ -1434,6 +1628,8 @@ const EditOcdCfg = function (props) {
   return html`
   <div class="row">
     <${uploadSVFfile}/>
+    <div class="col col-0"></div>
+    <${manageSVFfile}/>  
   </div>
 
   <div class="row">
