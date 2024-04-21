@@ -1242,6 +1242,31 @@ const SettingPage = function (props) {
         nc ${hostIp} 6100
       </div></code>
       <p>and so on ...</p>
+
+      <br></br>
+      <br></br>
+      <h1 style="margin: 0.2em 0;">CAN BUS:</h1>
+      <p>CAN bus interfaces can be operated in two ways, namely socketcand and vcan2can. </p>
+      <p>The first method is suitable for both Windows and Linux environments. </p>
+      <p>while the vcan2can method is primarily used in Linux environments.</p>
+      <br></br>
+      
+      <p>1.socketcand can be operated by establishing a connection with netOcd via UDP. </p>
+      <p>For detailed instructions, refer to the socketcand manual; </p>
+      <p>it can be implemented by exchanging a few strings.</p>
+      <br></br>
+      <p>2.vcan2can establishes a channel between the host and netOcd through cannelloni.</p>
+      <p> netOcd will automatically control the opening and closing of cannelloni based on the settings in the "Comconfig" interface. </p>
+      <p>However, on the host side, the following command needs to be executed to establish the channel with netOcd. </p>
+      <p>Once the channel is established, the host side can be conveniently operated like local socketcan, </p>
+      <p>or used with software like SavvyCAN, a GUI for CAN.</p>
+      <code><div>sudo modprobe vcan</div></code>
+      <code><div>sudo ip link add name vcan0 type vcan</div></code>
+      <code><div>sudo ip link set dev vcan0 up</div></code>
+      <code><div>sudo tc qdisc add dev vcan0 root tbf rate 500kbit latency 100ms burst 1000</div></code>
+      <code><div>cannelloni -I vcan0 -R ${hostIp} -r 20000 -l 20000 -C c</div></code>
+      <p>or</p>
+      <code><div>cannelloni -I vcan1 -R ${hostIp} -r 20001 -l 20001 -C c</div></code>
     </div>
     </div>
     </div>

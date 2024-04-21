@@ -163,6 +163,7 @@ int main(int argc, char *argv[]) {
   mg_mgr_init(&mgr);
   srand(time(NULL));
   mg_timer_add(&mgr, 5000, MG_TIMER_REPEAT | MG_TIMER_RUN_NOW, timer_fn, NULL);
+  sleep(1);
   mg_http_listen(&mgr, s_listen_on, device_dashboard_fn, &mgr);
   MG_INFO(("Listening on %s", s_listen_on));
   // for (;;) mg_mgr_poll(&mgr, 1000);
