@@ -900,44 +900,28 @@ const showLonLine = m => {
   ;
 }
 
-
-
-// inface="OCD0" port=${6400} cfgList=${cfgList} infacecfgList=${interfacecfgList} cfg=${ocd0cfg} sta=${ocd0Status} log=${ocd0Log}/> 
+// inface="OCD0" port=${6400} cfgList=${cfgList} cfg=${ocd0cfg} sta=${ocd0Status} log=${ocd0Log}/> 
 const oneOcdConfig = props => {
   const [bgroundColor, set_bgroundColor] = useState("#adbbe5");
   const [enabledSta, set_enableSta] = useState("");
   const [disabledSta, set_disabledSta] = useState("");
-  
-  const [radioXVCidSta, set_radioXVCidSta] = useState("");
-  const [radioDAPidSta, set_radioDAPidSta] = useState("");
-  const [radioOCDidSta, set_radioOCDidSta] = useState("");
 
+  //const [slectCfg, set_slectCfg] = useState("");
+  // console.log(props.inface,"log0", log);
   console.log("oneOcdConfig->"+props.inface+"->"+props.sta);
-  
   if (props.sta == 'disable') {
     set_enableSta('');
     set_disabledSta("disable");
     set_bgroundColor("#a6a6a6");
-    set_radioXVCidSta(""); //false
-    set_radioDAPidSta("");
-    set_radioOCDidSta(""); 
   } else if (props.sta == 'enable') {
     set_enableSta('disable');
     set_disabledSta("");
     set_bgroundColor("#adbbe5");
-    set_radioXVCidSta("true");
-    set_radioDAPidSta("true");
-    set_radioOCDidSta("true");
     // set_log(x=>x.concat([props.log]));
   } else { //halt status 
     set_enableSta('disable');
     set_disabledSta("disable");
-    set_radioXVCidSta("true");
-    set_radioDAPidSta("true");
-    set_radioOCDidSta("true");
   }
-  
-
   var useTip = "not working";
   if (props.sta == 'enable') {
     if (props.inface == "OCD0") {
@@ -947,6 +931,7 @@ const oneOcdConfig = props => {
     }
   }
 
+
   const pushMsg = (action, cfg) => {
     fetch('/api/ocd', {
       method: 'post',
@@ -954,97 +939,20 @@ const oneOcdConfig = props => {
     }
     ).catch(err => err);
   }
-  const pushJtagSwdMsg = (action, cfg, interfaceCfg) => {
-    fetch('/api/ocd', {
-      method: 'post',
-      body: `ocd=${props.inface}&cfg=${cfg}&action=${action}&interface=${interfaceCfg}`
-    }
-    ).catch(err => err);
-  }
 
-  var radioXVCid = props.inface + "xvc";
-  var radioDAPid = props.inface + "dap";
-  var radioOCDid = props.inface + "ocd";
-  var interfaceName = props.inface + "name";
+
 
   const enableButton = ev => {
-
-    var xvcRadio = document.getElementById(radioXVCid);
-    var dapRadio = document.getElementById(radioDAPid);
-    var ocdRadio = document.getElementById(radioOCDid);
-    var isXvcSelected = xvcRadio.checked;
-    var isDapSelected = dapRadio.checked;
-    var isocdRadio    = ocdRadio.checked;
-    var selectInterFace;
-    if(isXvcSelected == true){
-      selectInterFace = "xvc";
-    }else if(isDapSelected == true){
-      selectInterFace = "dap";
-    }else if(isocdRadio == true){
-      selectInterFace = "ocd";
-    }else{
-      return
-    }
-    console.log(cfgName,"", selectInterFace);
-    switch(selectInterFace){
-      case "xvc":
-        pushMsg("start", "Xilinx_XVC");
-
-        console.log(selectInterFace+"..1.."+selectInterFace);
-        break;
-      case "dap":
-        pushMsg("start", "usbip_CMSISDAP");
-        
-        console.log(selectInterFace+"..2.."+selectInterFace);
-        break;
-      case "ocd":
-        var e = document.getElementById(props.inface);
-        var cfgName = e.value;
-        var interfacecfgName = document.getElementById(props.inface+"jwspeed").value;
-      
-        pushJtagSwdMsg("start", cfgName,interfacecfgName);
-       
-        console.log(selectInterFace+"..3.."+selectInterFace);
-        break;
-    }  
-
+    var e = document.getElementById(props.inface);
+    var cfgName = e.value;
+    //console.log(cfgName);
+    pushMsg("start", cfgName);
   }
   const disableButton = ev => {
-    var xvcRadio = document.getElementById(radioXVCid);
-    var dapRadio = document.getElementById(radioDAPid);
-    var ocdRadio = document.getElementById(radioOCDid);
-    var isXvcSelected = xvcRadio.checked;
-    var isDapSelected = dapRadio.checked;
-    var isocdRadio    = ocdRadio.checked;
-    var selectInterFace;
-    if(isXvcSelected == true){
-      selectInterFace = "xvc";
-    }else if(isDapSelected == true){
-      selectInterFace = "dap";
-    }else if(isocdRadio == true){
-      selectInterFace = "ocd";
-    }
-    switch(selectInterFace){
-      case "xvc":
-        pushMsg("stop", "Xilinx_XVC");
-        
-        console.log("stop"+selectInterFace+"..1.."+selectInterFace);
-        break;
-      case "dap":
-        pushMsg("stop", "usbip_CMSISDAP");
-        
-        console.log("stop"+selectInterFace+"..2.."+selectInterFace);
-        break;
-      case "ocd":
-        var e = document.getElementById(props.inface);
-        var cfgName = e.value;
-        pushMsg("stop", cfgName);
-       
-        console.log("stop"+selectInterFace+"..3.."+selectInterFace);
-        break;
-    }  
-    
-    //pushMsg("stop", cfgName); //important: send cmd to server
+    var e = document.getElementById(props.inface);
+    var cfgName = e.value;
+    //console.log(cfgName);
+    pushMsg("stop", cfgName);
   }
 
   var enableBtnId = props.inface + "enableButton";
@@ -1054,8 +962,6 @@ const oneOcdConfig = props => {
     e.disabled = true;
 
   };
-
-
   useEffect(() => {
     const enBtnEle = document.getElementById(enableBtnId);
     enBtnEle.addEventListener("click", dis_allButton);
@@ -1094,59 +1000,30 @@ const oneOcdConfig = props => {
       logEle.removeEventListener("DOMNodeInserted", scrollLog);
     }
   }, [])
-  useEffect(() => {
-    if (typeof props.cfg !== 'undefined') {
-       if(props.cfg == "Xilinx_XVC"){
-        document.getElementById(radioXVCid).checked = true;
-      
-      }else if(props.cfg == "usbip_CMSISDAP"){
-        document.getElementById(radioDAPid).checked = true;
-      
-      }else {
-        document.getElementById(radioOCDid).checked = true;
-      }
-      document.getElementById(radioOCDid).disabled = true;
-      document.getElementById(radioDAPid).disabled = true;
-      document.getElementById(radioXVCid).disabled = true;
-      console.log("set radio status ++++" + props.cfg + "xxxx" + props.cfg.length);
-    } else {
-      document.getElementById(radioOCDid).checked = true;
-      console.log('props.cfg 未定义');
-    }
-  }, [])
-
-
   return html`
 
   <div class="col col-5-5"> 
-  <div class="item" style="background: ${bgroundColor};">
+  <div class="item" style="background: ${bgroundColor}">
       <h3 style="background: #0DA0EE; color: #fff; padding: 0.4em;">${props.inface} ${useTip}</h3>
-
-      <div style="margin-top: 0.5em;">
-        <input type="radio" id=${radioXVCid} name=${interfaceName} value="xvc" disabled=${radioXVCidSta}/>
-        <label for=${radioXVCid}>XILINX XVC</label>  <br/>  
-        <input type="radio" id=${radioDAPid} name=${interfaceName} value="usbip" disabled=${radioDAPidSta}/>
-        <label for=${radioDAPid}>USBIP CMSIS DAP</label>  <br/>  
-        <input type="radio" id=${radioOCDid} name=${interfaceName} value="select" disabled=${radioOCDidSta}/>
-        <label for=${radioOCDid}>OPENOCD</label>    
-        <select id=${props.inface+"jwspeed"} value=${props.interfacecfg} style="margin-left: 1.0em;">
-          ${props.infacecfgList.map(cfg => h(oneOcdCfg, { cfg }))}
-        </select>
-        <select id=${props.inface} value=${props.cfg} style="margin-left: 1.0em;">
-          ${props.cfgList.map(cfg => h(oneOcdCfg, { cfg }))}
-        </select>
-      </div>
       
-      <div style="margin-top: 0.5em;">
-          <button id=${enableBtnId} disabled=${enabledSta} class="btn" style="background: #9DEE0D;" onclick=${enableButton}>Enable</button>
-          <button id=${disableBtnId} disabled=${disabledSta} class="btn" style="background: #8aa;" onclick=${disableButton}>Disable</button>
+      <div style="margin: 0.5em 0; display: flex;" > 
+  
+      <select id=${props.inface} value=${props.cfg} style="margin-left: 0.0em;">
+      ${props.cfgList.map(cfg => h(oneOcdCfg, { cfg }))}
+      </select>
+      <button id=${enableBtnId} disabled=${enabledSta} class="btn" 
+      style="margin-left: 1em; background: #9DEE0D;" onclick=${enableButton} >Enable</button>
+      <button id=${disableBtnId} disabled=${disabledSta} class="btn" 
+      style="margin-left: 1em; background: #8aa;"  onclick=${disableButton}>Disable</button>
       </div>
       
       <div id=${logId} style="height: 30em; overflow: auto; padding: 0.5em; " class="border">
-      ${props.log.map(log => h(showLonLine, { log }))}
+          ${props.log.map(log => h(showLonLine, { log }))}
       </div>
+      
+      
   </div>
-</div>
+  </div> 
  
   `;
 };
@@ -1175,7 +1052,6 @@ const oneResetButton = props => {
 
 const OcdConfigPage = function (props) {
   const [cfgList, set_cfgList] = useState([]);
-  const [interfacecfgList, set_interfacecfgList] = useState([]);
   const [ocd0Log, set_ocd0Log] = useState([]);
   const [ocd1Log, set_ocd1Log] = useState([]);
 
@@ -1185,24 +1061,18 @@ const OcdConfigPage = function (props) {
   const [ocd0cfg, set_ocd0cfg] = useState();
   const [ocd1cfg, set_ocd1cfg] = useState();
 
-  const [ocd0ifcfg, set_ocd0ifcfg] = useState();
-  const [ocd1ifcfg, set_ocd1ifcfg] = useState();
-
   useEffect(() => {
     const id = PubSub.subscribe(function (msg) {
       if (msg.cfgConfig) {
         set_cfgList(msg.list);
-        set_interfacecfgList(msg.interFacelist);
-        //console.log("OcdConfigPage:subscribe:", msg.interFacelist);
+        //console.log("OcdConfigPage:subscribe:", msg.list);
       }
-      
       if (msg.OCD0) {
         if (msg.OCD0.sta == 'disable') {
           set_ocd0Status("disable");
         } else if (msg.OCD0.sta == 'enable') {
           set_ocd0Status("enable");
           set_ocd0cfg(msg.OCD0.cfg);
-          set_ocd0ifcfg(msg.interfacecfg);
         } else {
           set_ocd0Status(msg.OCD0.sta); //for halt sta
         }
@@ -1217,7 +1087,6 @@ const OcdConfigPage = function (props) {
         } else if (msg.OCD1.sta == 'enable') {
           set_ocd1Status("enable");
           set_ocd1cfg(msg.OCD1.cfg);
-          set_ocd1ifcfg(msg.interfacecfg);
         } else {
           set_ocd1Status(msg.OCD1.sta); //for halt sta
         }
@@ -1238,9 +1107,9 @@ const OcdConfigPage = function (props) {
   return html`
 
     <div class="row">
-    <${oneOcdConfig} inface="OCD0" port=${6400} cfgList=${cfgList} infacecfgList=${interfacecfgList} cfg=${ocd0cfg} interfacecfg=${ocd0ifcfg} sta=${ocd0Status} log=${ocd0Log}/> 
+    <${oneOcdConfig} inface="OCD0" port=${6400} cfgList=${cfgList} cfg=${ocd0cfg} sta=${ocd0Status} log=${ocd0Log}/> 
     <div class="col col-0"></div>
-    <${oneOcdConfig} inface="OCD1" port=${6401} cfgList=${cfgList} infacecfgList=${interfacecfgList} cfg=${ocd1cfg} interfacecfg=${ocd0ifcfg} sta=${ocd1Status} log=${ocd1Log}/>
+    <${oneOcdConfig} inface="OCD1" port=${6401} cfgList=${cfgList} cfg=${ocd1cfg} sta=${ocd1Status} log=${ocd1Log}/>
     </div> 
     <div class="row">
     <${oneResetButton} resetPin="trst0" />

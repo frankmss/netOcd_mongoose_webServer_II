@@ -209,6 +209,16 @@ int get_OcdCfgList(char *resultBuf) {
   return 0;
 }
 
+int get_OcdInterFaceList(char *resultBuf){
+  char cfgPath[100];
+  memset(cfgPath, 0, 100);
+  // sprintf(cfgPath, "ls /usr/local/openocd-code-withaxi/tcl/target");
+  sprintf(cfgPath, "ls %s/tcl/forWebShow_cahill_cfg", OPENOCD_PATH);
+  exec_cmd(cfgPath, resultBuf);
+  // printf("cfgList:%s\n",resultBuf);
+  return 0;
+}
+
 int del_AocdCfgFile( char *fileName){
   char cfgPath[100];
   memset(cfgPath, 0, 100);
@@ -267,6 +277,30 @@ int start_ocd(char *ocdName, char *cfgFile) {
     swap_status.ocd_cd[1].cmd = 1;
     strcpy(swap_status.ocd_cd[1].name, ocdName);
     strcpy(swap_status.ocd_cd[1].configFile, cfgFile);
+  } else {
+    return -1;
+  }
+
+  swap_status.this_available = 1;
+  push_cmd_to_swap(&swap_status);
+  // int push_cmd_to_swap(struct swap_config_cmd *data);
+  return 0;
+}
+
+//add 2024.5.10
+int start_ocd_js_speed(char *ocdName, char *cfgFile, char *interfaceFile) {
+  struct swap_config_cmd swap_status;
+  memset((char *)(&swap_status), 0, sizeof(struct swap_config_cmd));
+  if (strstr(ocdName, "OCD0") != 0) {
+    swap_status.ocd_cd[0].cmd = 1;
+    strcpy(swap_status.ocd_cd[0].name, ocdName);
+    strcpy(swap_status.ocd_cd[0].configFile, cfgFile);
+    strcpy(swap_status.ocd_cd[0].interfaceFile, interfaceFile);
+  } else if (strstr(ocdName, "OCD1") != 0) {
+    swap_status.ocd_cd[1].cmd = 1;
+    strcpy(swap_status.ocd_cd[1].name, ocdName);
+    strcpy(swap_status.ocd_cd[1].configFile, cfgFile);
+    strcpy(swap_status.ocd_cd[1].interfaceFile, interfaceFile);
   } else {
     return -1;
   }

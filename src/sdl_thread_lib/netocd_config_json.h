@@ -52,6 +52,6 @@ struct json_netocd_config{
 // void create_ifcJson(struct swap_status *sstatus);
 void create_ifcJson(struct swap_status *sstatus, char *returnBuffer);
 int create_ocdJson(struct swap_status *sstatus, char *jOcdInfc);
-void create_cfgJson(char *cfgList_str,int bufSize);
+void create_cfgJson(char *cfgList_str, char *interFace_str, int bufSize) ;
 void create_svfJson(char *cfgList_str,int bufSize);
 #endif //__NETOCD_CONFIG_JSON__

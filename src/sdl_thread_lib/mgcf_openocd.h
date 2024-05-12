@@ -15,6 +15,7 @@ struct m2c_msg {
   char cmd[M2C_CMD_SIZE];
   char searchKey[M2C_SEARCHKEY_SIZE];
   char cfg[M2C_SEARCHKEY_SIZE];
+  char interfacecfg[M2C_SEARCHKEY_SIZE];
   unsigned int tail;  // 0x410209be
 };
 
@@ -26,6 +27,7 @@ struct c2m_msg {
   int openocd_pid;
   union openocd_log ocdlog;
   char cfg[M2C_SEARCHKEY_SIZE];
+  char interfacecfg[M2C_SEARCHKEY_SIZE];
   char buf[M2C_CMD_SIZE];
   char searchKey[M2C_SEARCHKEY_SIZE];
   int sta;
@@ -47,5 +49,5 @@ void forcKillFpProcess(void);
 int get_status_from_forkThread(int ocdId, struct _ocd_status *ocdSta);
 // only for opr openocd thread,
 // cmd contain start, check, stop
-int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile);
+int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile, char *interfaceFile);
 #endif  //__MGCF_OPENOCD_H__

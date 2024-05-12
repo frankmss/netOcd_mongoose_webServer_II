@@ -245,7 +245,8 @@ end:
   return;
 }
 
-void create_cfgJson(char *cfgList_str,int bufSize) {
+//2024.5.10 add interface_str for jtag swd and speed config
+void create_cfgJson(char *cfgList_str, char *interFace_str, int bufSize) {
   char tmpFileName[100], availableName[100];
   cJSON *js_cfglist = NULL;
   cJSON *jsOneFile = NULL;
@@ -282,8 +283,6 @@ void create_cfgJson(char *cfgList_str,int bufSize) {
       found = strstr(tmpFileName, ".cfg");
       if (found != NULL) {
         memcpy(availableName, tmpFileName, (found - tmpFileName));
-        //printf("-(%d)-\n%s\n---\n", nshift, availableName);
-        
         tIndex = 0;
         nshift++;
         cJSON_AddItemReferenceToArray(js_cfglist, cJSON_CreateString(availableName));
@@ -293,29 +292,47 @@ void create_cfgJson(char *cfgList_str,int bufSize) {
       //for check .tcl file 2024-0409 add
       found = strstr(tmpFileName, ".tcl");
       if (found != NULL) {
-        memcpy(availableName, tmpFileName, (found - tmpFileName));
-        //printf("-(%d)-\n%s\n---\n", nshift, availableName);
-        
+        memcpy(availableName, tmpFileName, (found - tmpFileName));       
         tIndex = 0;
         nshift++;
         cJSON_AddItemReferenceToArray(js_cfglist, cJSON_CreateString(availableName));
         memset(tmpFileName, 0, 100);
         memset(availableName, 0, 100);
       }
-
-      // jsOneFile = cJSON_CreateObject();
-      // if (jsOneFile == NULL) {
-      //   goto end;
-      // }
-
     } else {  // the context is file name;
       tmpFileName[tIndex++] = cfgList_str[aIndex];
     }
-    // if (nshift > 10) {
-    //   break;
-    // }
     aIndex++;
   }
+
+  //add this while(1) for add interFace_str
+  cJSON *js_interFacelist = cJSON_CreateArray();
+  if (js_interFacelist == NULL) {
+    goto end;
+  }
+  cJSON_AddItemToObject(cfgConfig, "interFacelist", js_interFacelist);
+  aIndex = 0;
+  tIndex = 0;
+  while(1){
+    if(interFace_str[aIndex] == '\0'){
+      break;
+    }
+    if(interFace_str[aIndex] == 10){ //check lf, new line
+      char *found;
+      found = strstr(tmpFileName, ".tcl");
+      if(found != NULL){
+        memcpy(availableName, tmpFileName, (found - tmpFileName-2)); //-2 for -0 or -1 in file_name
+        tIndex = 0;
+        cJSON_AddItemReferenceToArray(js_interFacelist, cJSON_CreateString(availableName));
+        memset(tmpFileName, 0, 100);
+        memset(availableName, 0, 100);
+      }
+    }else {  // the context is file name;
+      tmpFileName[tIndex++] = interFace_str[aIndex];
+    }
+    aIndex++;
+  }
+
   char *pstr = cJSON_Print(cfgConfig);
   // char *pstr = cJSON_PrintUnformatted(cfgConfig);
   printf("create ocdCfg ok\n");
@@ -361,7 +378,7 @@ int create_ocdJson(struct swap_status *sstatus, char *jOcdInfc){
   
   
   
-  //halt means not get msg from fork,
+  // halt means not get msg from fork,
   // disable means openocd is not run,
   // enable means openocd is running,
   if(ocdSta0->pid == 0){
@@ -372,6 +389,7 @@ int create_ocdJson(struct swap_status *sstatus, char *jOcdInfc){
   }else {
     cJSON_AddItemToObject(jocd0, "sta", cJSON_CreateString("enable"));
     cJSON_AddItemToObject(jocd0, "cfg", cJSON_CreateString(ocdSta0->configFile));
+    cJSON_AddItemToObject(jocd0, "interfacecfg", cJSON_CreateString(ocdSta0->interfaceFile));
   }
 
   if(ocdSta1->pid == 0){
@@ -381,6 +399,7 @@ int create_ocdJson(struct swap_status *sstatus, char *jOcdInfc){
   }else {
     cJSON_AddItemToObject(jocd1, "sta", cJSON_CreateString("enable"));
     cJSON_AddItemToObject(jocd1, "cfg", cJSON_CreateString(ocdSta1->configFile));
+    cJSON_AddItemToObject(jocd1, "interfacecfg", cJSON_CreateString(ocdSta1->interfaceFile));
   }
 
 

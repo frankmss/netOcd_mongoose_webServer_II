@@ -36,6 +36,7 @@ struct _ocd_cd {
 #define OCD_CONFIG_FILE_LEN 32
   char name[OCD_CD_NAME_LEN];
   char configFile[OPENOCD_LOG_RWO_SIZES];
+  char interfaceFile[OPENOCD_LOG_RWO_SIZES];
   int port;
   int cmd;  // 1=on, 0=off
   int bps;
@@ -85,6 +86,7 @@ union openocd_log {
 struct _ocd_status {
   char name[OCD_CD_NAME_LEN];
   char configFile[OPENOCD_LOG_RWO_SIZES];
+  char interfaceFile[OPENOCD_LOG_RWO_SIZES];
   int run;  //=0,no; =1 run
   int bps;
   int port;

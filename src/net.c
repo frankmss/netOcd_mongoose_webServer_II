@@ -95,7 +95,10 @@ void gs_OcdCfgsList(struct mg_mgr *mgr) {
   char resultBuf[resultBufsize];
   memset(resultBuf, 0, resultBufsize);
   get_OcdCfgList(resultBuf);
-  create_cfgJson(resultBuf, resultBufsize);
+  char interFaceFub[resultBufsize/2];
+  get_OcdInterFaceList(interFaceFub);
+
+  create_cfgJson(resultBuf,interFaceFub, resultBufsize);
   send_notification(mgr, "%s", resultBuf);
   printf("ws:send:%s\n", resultBuf);
 }
@@ -127,7 +130,6 @@ static void timer_getInterface_sta(void *param) {
   send_notification(param, "%s", msgBuf);
 
   // generate ocd status json
-
   memset(ocdBuf, 0, 4096 + 2048);
   create_ocdJson(&main_sta_data, ocdBuf);
   send_notification(param, "%s", ocdBuf);
@@ -264,12 +266,14 @@ void opr_openocd(struct mg_http_message *hm) {
   char ocdName[64];
   char cfg[64];
   char action[16];
-  int ocdNamei = 0, cfgi = 0, actioni;
+  char interface[64];
+  int ocdNamei = 0, cfgi = 0, actioni=0, interfacei=0;
   ocdNamei = mg_http_get_var(&hm->body, "ocd", ocdName, sizeof(ocdName));
   cfgi = mg_http_get_var(&hm->body, "cfg", cfg, sizeof(cfg));
   actioni = mg_http_get_var(&hm->body, "action", action, sizeof(action));
-  if ((ocdNamei > 0) && (cfgi > 0) && (actioni > 0)) {
-    printf("opr_openocd: %s->%s->%s\n", ocdName, cfg, action);
+  interfacei = mg_http_get_var(&hm->body, "interface", interface, sizeof(interface));
+  if ((ocdNamei > 0) && (cfgi > 0) && (actioni > 0) && (interfacei<=0)) {
+    printf("opr_openocd 0: %s->%s->%s\n", ocdName, cfg, action);
     if (strstr(action, "start") != NULL) {
       // printf("%s should start\n",ocdName);
       // int start_ocd(char *ocdName, char *cfgFile)
@@ -277,6 +281,18 @@ void opr_openocd(struct mg_http_message *hm) {
     } else if (strstr(action, "stop") != NULL) {
       stop_ocd(ocdName);
     }
+  }else if((ocdNamei > 0) && (cfgi > 0) && (actioni > 0) && (interfacei>0)) { //(interfacei>0)
+    printf("opr_openocd with interface config: %s->%s->%s->%s\n", ocdName, cfg, action, interface);
+    if (strstr(action, "start") != NULL) {
+      // printf("%s should start\n",ocdName);
+      // int start_ocd(char *ocdName, char *cfgFile)
+      start_ocd_js_speed(ocdName, cfg, interface);
+    } else if (strstr(action, "stop") != NULL) {
+      stop_ocd(ocdName);
+    }
+  }else{
+    printf("opr_openocd(struct mg_http_message *hm) err !!!\n");
+    printf("%d-%d-%d-%d\n", ocdNamei, cfgi, actioni, interfacei);
   }
 }
 
@@ -314,6 +330,7 @@ void rebootSys(struct mg_http_message *hm){
   //exit 0, openocd_update_autoRun.sh exec reboot
   printf("netOcd should reboot because user\n");
   system("sync /usr/local/");
+  system("reboot");
   forcKillFpProcess(); // kill fork process
   int pid = getpid();
   kill(pid, SIGTERM);

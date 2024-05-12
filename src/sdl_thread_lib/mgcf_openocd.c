@@ -53,10 +53,11 @@ int cRm_msg(int fd, struct m2c_msg *m2cbuf) {
   int x = read(fd, pm2cbuf, sizeof(struct m2c_msg));
   
   if (x != sizeof(struct m2c_msg)) {
+    printf("fork real read %d bytes != %d bytes\n", x, sizeof(struct m2c_msg));
     return -1;
   }
   if ((m2cbuf->head == M2CMSG_HEAD) && (m2cbuf->tail == M2CMSG_TAIL)) {
-    
+    printf("fork real read %d bytes ok \n", sizeof(struct m2c_msg));
     return 0;
   } else {
    
@@ -67,6 +68,7 @@ int cRm_msg(int fd, struct m2c_msg *m2cbuf) {
 int parese_pid(char *resultBuf) {
   // printf("%s \n", resultBuf);
   if (strlen(resultBuf) == 0) {
+    printf("fork parse_pid resultBuf:%s(len=%d)\n", resultBuf, strlen(resultBuf));
     return -1;
   }
   int openocdpid = 0;
@@ -160,6 +162,7 @@ void initFp(struct forkProcessDes *fpDes) {
       int i = 0;
       //int k = 0;
       char pidSaveCfg[64];
+      char pidinterfaceCfg[64];
       struct c2m_msg c2m_msg;
       struct m2c_msg m2c_msg;
       char *pchar_c2m_msg = (char *)(&c2m_msg);
@@ -179,16 +182,19 @@ void initFp(struct forkProcessDes *fpDes) {
       close(pipeStd[1]);
       fstd = pipeStd[0];
       while (1) {  // child main loop;
+        sleep(1);
+        printf("fork run loop while(1) pid:%d\n", pid);
         memset(pchar_c2m_msg, 0, sizeof(struct c2m_msg));
         if (cRm_msg(rf, &m2c_msg) == 0) {
-          // printf("child get msg :%s\n", m2c_msg.cmd);
+          printf("fork get msg cmd:%s, searchKey:%s\n", m2c_msg.cmd, m2c_msg.searchKey);
           if (strlen(m2c_msg.cmd) != 0) {  // exec cmd
             printf("fork get cmd:%s\n", m2c_msg.cmd);
             system(m2c_msg.cmd);
             strcpy(pidSaveCfg, m2c_msg.cfg);
+            strcpy(pidinterfaceCfg, m2c_msg.interfacecfg);
             read(pipeStd[0], c2m_msg.buf, M2C_CMD_SIZE);
-            sleep(1);
-            // printf("**child startloop:%s\n",c2m_msg.buf);
+            //sleep(1);
+            printf("**child startloop:%s\n",c2m_msg.buf);
           }  // else {  // ps cmdkey, get its pid and openocd log
 
           if (strlen(m2c_msg.searchKey) != 0) {
@@ -200,7 +206,7 @@ void initFp(struct forkProcessDes *fpDes) {
             fork_exec_cmd(cmd, resultBuf);
             int openocd_pid = parese_pid(resultBuf);
             c2m_msg.openocd_pid = openocd_pid;
-            // printf("\n--start---\n");
+            printf("fork get openocd_pid %d\n", openocd_pid);
             readOcdLog(fstd, (union openocd_log *)(&(c2m_msg.ocdlog)));
           }
           // printf("child:%d\n", i++);
@@ -209,9 +215,13 @@ void initFp(struct forkProcessDes *fpDes) {
           c2m_msg.tail = M2CMSG_TAIL;
           // sprintf(c2m_msg.buf, "child msg %d", i);
           strcpy(c2m_msg.cfg, pidSaveCfg);  // always send this item
+          strcpy(c2m_msg.interfacecfg, pidinterfaceCfg);
+          printf("fork xxxx c2m_msg.interfacecfg:%s\n", c2m_msg.interfacecfg);
           write(wf, &c2m_msg, sizeof(struct c2m_msg));
+        }else{
+          printf("fork pid:%d cant get message from master\n", fpDes->pid);
         }
-        sleep(1);
+        
       }
     } while (0);
 
@@ -280,6 +290,7 @@ void init_mgcf_openocd(void) {
   fpDes[0].wf = fpDes[0].wpipefds[1];
   fpDes[1].rf = fpDes[1].rpipefds[0];
   fpDes[1].wf = fpDes[1].wpipefds[1];
+  printf("init_mgcf_openocd init ok ...\n");
 }
 void forcKillFpProcess(void){
   kill(fpDes[0].pid, SIGTERM);
@@ -288,10 +299,11 @@ void forcKillFpProcess(void){
 
 // only for opr openocd thread,
 //  cmd contain start, check, stop
-int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile) {
+int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile, char *interfaceFile) {
   char realcmd[512];
   char searchKey[32];
   static char nowConfigFile[2][OPENOCD_LOG_RWO_SIZES];
+  static char nowOcdInterfaceFile[2][OPENOCD_LOG_RWO_SIZES];
   if (!(ocdId != 0 || ocdId != 1)) {  // there is no this ocd
     printf("sendCmdToForkThread:ocdId(%d) err", ocdId);
     return -1;
@@ -315,10 +327,12 @@ int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile) {
     } 
     else {
       sprintf(realcmd,
-              "%s/openocd_%d -f %s/tcl/cahill_cfg/axiFFJtager_tcl_%d.tcl -f "
+              "%s/openocd_%d -f %s/tcl/cahill_cfg/%s_%d.tcl -f "
               "%s/tcl/target/%s.cfg -s %s/tcl -d2 &",
-              OPENOCD_PATH, ocdId, OPENOCD_PATH, ocdId, OPENOCD_PATH, cfgFile,
+              OPENOCD_PATH, ocdId, OPENOCD_PATH,interfaceFile, ocdId, OPENOCD_PATH, cfgFile,
               OPENOCD_PATH);
+      memset(nowOcdInterfaceFile[ocdId],0, OPENOCD_LOG_RWO_SIZES);
+      sprintf(nowOcdInterfaceFile[ocdId], "%s", interfaceFile);
     }
     printf("send_cmd_to_forkThread:%s\n", realcmd);
     // for xvc cfgFile
@@ -356,13 +370,22 @@ int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile) {
   } else {
     strcpy(m2c_msg.cfg, nowConfigFile[ocdId]);
   }
+  if(interfaceFile != NULL){
+    memset(m2c_msg.interfacecfg, 0, M2C_SEARCHKEY_SIZE);
+    printf("sendCmdToForkThread interfaceFile:%s\n",interfaceFile);
+    strcpy(m2c_msg.interfacecfg, interfaceFile);
+  }else{
+    strcpy(m2c_msg.interfacecfg, nowOcdInterfaceFile[ocdId]);
+  }
+
   printf("send_cmd_to_forkThread cfg(%d):%s\n", ocdId, m2c_msg.cfg);
+  printf("send_cmd_to_forkThread interfacecfg(%d):%s\n", ocdId, m2c_msg.interfacecfg);
 
   m2c_msg.head = M2CMSG_HEAD;
   m2c_msg.tail = M2CMSG_TAIL;
 
-  write(fpDes[ocdId].wf, &m2c_msg, sizeof(struct m2c_msg));
-  // printf("sendCmdToForkThread %d over\n", ocdId);
+  ssize_t wn = write(fpDes[ocdId].wf, &m2c_msg, sizeof(struct m2c_msg));
+  printf("sendCmdToForkThread %d write %d bytes over current.cmd=%s\n", ocdId, wn,m2c_msg.searchKey);
   return 0;
 }
 
@@ -386,6 +409,8 @@ int get_status_from_forkThread(int ocdId, struct _ocd_status *ocdSta) {
       memcpy(ocdSta->ocdlog.cbuf, c2m_msg.ocdlog.cbuf,
              sizeof(union openocd_log));
       strcpy(ocdSta->configFile, c2m_msg.cfg);
+      strcpy(ocdSta->interfaceFile, c2m_msg.interfacecfg);
+      printf("get_status_from_forkThread ocdSta(%d)->pid:%d\n",ocdId,ocdSta->pid);
     } else {
       ocdSta->run = 0;
       ocdSta->pid = 0;

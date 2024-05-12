@@ -31,12 +31,14 @@ int start_can(char *wName, char *port, char *bps);
 int stop_ser2net(char *wName, struct swap_status *pswap);
 int stop_can(char *wName);
 int get_OcdCfgList(char *resultBuf);
+int get_OcdInterFaceList(char *resultBuf);
 int del_AocdCfgFile( char *fileName);
 int del_SVFFile( char* fileName);
 int upgrade_reboot_sys(void);
 int getSVFList(char* cmdRsp);
 int cat_cfgFileContext(char* fileName, char* rsp);
 int start_ocd(char *ocdName, char *cfgFile);
+int start_ocd_js_speed(char *ocdName, char *cfgFile, char *interfaceFile) ;
 int stop_ocd(char *ocdName);
 int start_trstPinLow(int32_t pinI);
 

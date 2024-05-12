@@ -22,14 +22,14 @@ int from_swap_get_dat(struct swap_config_cmd *swap,
   SDL_LockMutex(swap->gBufferLock);
   if (swap->this_available == 1) {
     memcpy(data, swap, sizeof(struct swap_config_cmd));
+    swap->this_available = 0;
+    SDL_UnlockMutex(swap->gBufferLock);
+    return 1;
   } else {
     SDL_UnlockMutex(swap->gBufferLock);
     return 0;
   }
-  swap->this_available = 0;
 
-  SDL_UnlockMutex(swap->gBufferLock);
-  return 1;
 }
 
 // push swap_config_cmd data to globle m2s_data;
@@ -205,10 +205,10 @@ void exec_cmds_queue(struct swap_config_cmd *cb) {
       printf("should start openocd %s->%s \n", cb->ocd_cd[0].name,
              cb->ocd_cd[0].configFile);
       // int send_cmd_to_forkThread(int ocdId, char *cmd, char *cfgFile);
-      send_cmd_to_forkThread(0, "start", cb->ocd_cd[0].configFile);
+      send_cmd_to_forkThread(0, "start", cb->ocd_cd[0].configFile, cb->ocd_cd[0].interfaceFile);
     } else {
       printf("should stop openocd 0\n");
-      send_cmd_to_forkThread(0, "stop", NULL);
+      send_cmd_to_forkThread(0, "stop", NULL, NULL);
     }
   }
 
@@ -216,10 +216,10 @@ void exec_cmds_queue(struct swap_config_cmd *cb) {
     if (cb->ocd_cd[1].cmd == 1) {
       printf("should start openocd %s->%s \n", cb->ocd_cd[1].name,
              cb->ocd_cd[1].configFile);
-      send_cmd_to_forkThread(1, "start", cb->ocd_cd[1].configFile);
+      send_cmd_to_forkThread(1, "start", cb->ocd_cd[1].configFile, cb->ocd_cd[1].interfaceFile);
     } else {
       printf("should stop openocd 1\n");
-      send_cmd_to_forkThread(1, "stop", NULL);
+      send_cmd_to_forkThread(1, "stop", NULL, NULL);
     }
   }
 
@@ -321,8 +321,8 @@ void runtine(struct swap_status *sta_dat) {
     if (get_data == 1) {
       exec_cmds_queue((struct swap_config_cmd *)(&cmd_data));
     } else {
-      send_cmd_to_forkThread(0, "check", NULL);
-      send_cmd_to_forkThread(1, "check", NULL);
+      send_cmd_to_forkThread(0, "check", NULL, NULL);
+      send_cmd_to_forkThread(1, "check", NULL, NULL);
     }
 
     struct _ocd_status *ocdSta;
@@ -365,6 +365,7 @@ int sdl_thread_bk(void *data) {
 
   while (1) {
     runtine((struct swap_status *)(&sta_data));
+    printf("sdl_thread_bk ocd(0).pid:%d\n", sta_data.ocd_status[0].pid);
     push_status_data_to_mst(&s2m_data, &sta_data);
     SDL_Delay(1000);
 
